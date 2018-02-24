@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "723636539762",
+    "firebase_url": "https://appmap-182c7.firebaseio.com",
+    "project_id": "appmap-182c7",
+    "storage_bucket": "appmap-182c7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:723636539762:android:d50fd98ff1010c36",
+        "android_client_info": {
+          "package_name": "naormalca.com.appmap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "723636539762-19g1ok19rkihtd383085i63ek360j132.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "naormalca.com.appmap",
+            "certificate_hash": "ec3866b21b5871f7e16f90c23adb1e12bd9fc808"
+          }
+        },
+        {
+          "client_id": "723636539762-sv0rv7p08imms2vj9qlnfmcka5np61ke.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAt0QTDRSNc1vsyWXQA4z82Y744Y_eoT4Q"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "723636539762-sv0rv7p08imms2vj9qlnfmcka5np61ke.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

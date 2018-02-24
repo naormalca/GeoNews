@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">דיווחים בכל מקום</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="reportTitle">כותרת הדיווח</string>
+
+    <string-array name="planets_array">
+        <item>ביטחוני</item>
+        <item>כלכלי</item>
+        <item>חברתי</item>
+        <item>פלילי</item>
+    </string-array>
+
+</resources>
