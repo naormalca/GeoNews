@@ -45,6 +45,9 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,OnMapReadyCallback
         ,GoogleMap.OnInfoWindowClickListener
 {
+    /**
+     * For test branch
+     */
 
     private DatabaseReference mDatabase;
     SupportMapFragment mSupportMapFragment;
