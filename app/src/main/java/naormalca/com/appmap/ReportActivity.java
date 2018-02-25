@@ -31,7 +31,7 @@ implements AdapterView.OnItemSelectedListener{
 
     private double mLatitudeReport;
     private double mLongitudeReport;
-    private int mSpinnerChoice;
+    private int mSpinnerChoice = 0;
 
     private DatabaseReference mDatabaseReports;
 

@@ -21,7 +21,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -31,7 +30,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import naormalca.com.appmap.model.Report;
 
@@ -43,7 +41,8 @@ import static naormalca.com.appmap.misc.Constant.TLV_LNG;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,OnMapReadyCallback
-        ,GoogleMap.OnInfoWindowClickListener
+        ,GoogleMap.OnInfoWindowClickListener,
+        GoogleMap.OnMapLoadedCallback
 {
 
     private DatabaseReference mDatabase;
@@ -55,6 +54,7 @@ public class MainActivity extends AppCompatActivity
     private double mLatitudeClick;
     private double mLongitudeClick;
     private Marker currentPositionMarker;
+    private boolean isMapLoaded = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,17 +72,22 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (radiusCheck(new LatLng(mLatitudeClick,mLongitudeClick))){
-                    Intent intent = new Intent(MainActivity.this, ReportActivity.class);
-                    intent.putExtra(REPORT_LAT,mLatitudeClick);
-                    intent.putExtra(REPORT_LNG,mLongitudeClick);
-                    startActivity(intent);
-                } else {
+                if (isMapLoaded) {
+                    if (radiusCheck(new LatLng(mLatitudeClick, mLongitudeClick))) {
+                        Intent intent = new Intent(MainActivity.this, ReportActivity.class);
+                        intent.putExtra(REPORT_LAT, mLatitudeClick);
+                        intent.putExtra(REPORT_LNG, mLongitudeClick);
+                        startActivity(intent);
+                    } else {
+                        Snackbar snackbar = Snackbar
+                                .make(view, "אינך נמצא ברדיוס הדיווח!", Snackbar.LENGTH_LONG);
+                        snackbar.show();
+                    }
+                } else{
                     Snackbar snackbar = Snackbar
-                            .make(view, "אינך נמצא ברדיוס הדיווח!", Snackbar.LENGTH_LONG);
+                            .make(view, "The map not render!", Snackbar.LENGTH_LONG);
                     snackbar.show();
                 }
-
             }
         });
 
@@ -179,17 +184,19 @@ public class MainActivity extends AppCompatActivity
         markersSetup();
     }
 
+
     private void markersSetup() {
         mDatabase = FirebaseDatabase.getInstance().getReference(DB_REPORTS);
         mDatabase.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Report report = dataSnapshot.getValue(Report.class);
-                mMap.addMarker(new MarkerOptions()
+                refreshMarkers(report);
+                /*mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(),report.getLongitude()))
                         .title(report.getTitle())
                         .snippet(report.getTime())
-                        .icon(BitmapDescriptorFactory.defaultMarker(Report.iconColors[report.getType()])));
+                        .icon(BitmapDescriptorFactory.defaultMarker(Report.iconColors[report.getType()])));*/
 
             }
 
@@ -203,11 +210,12 @@ public class MainActivity extends AppCompatActivity
                 mMap.clear();
                 showCurrentPositionOnMap(gps);
                 Report report = dataSnapshot.getValue(Report.class);
-                mMap.addMarker(new MarkerOptions()
+                refreshMarkers(report);
+                /*mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(),report.getLongitude()))
                         .title(report.getTitle())
                         .snippet(report.getTime())
-                        .icon(BitmapDescriptorFactory.defaultMarker(Report.iconColors[report.getType()])));
+                        .icon(BitmapDescriptorFactory.defaultMarker(Report.iconColors[report.getType()])));*/
             }
 
             @Override
@@ -220,6 +228,15 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+    }
+
+    private void refreshMarkers(Report report) {
+        mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(report.getLatitude(),report.getLongitude()))
+                .title(report.getTitle())
+                .snippet(report.getTime())
+                .icon(BitmapDescriptorFactory.defaultMarker(Report.iconColors[report.getType()])));
+
     }
 
     public void showCurrentPositionOnMap(GPSTracker gps)
@@ -248,5 +265,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onInfoWindowClick(Marker marker) {
         marker.showInfoWindow();
+    }
+
+    @Override
+    public void onMapLoaded() {
+        isMapLoaded = true;
     }
 }
