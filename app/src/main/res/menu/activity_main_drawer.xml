@@ -6,19 +6,23 @@
     <item android:title="סינון אירועים"/>
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_camera"
+            android:id="@+id/noFilter"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="הכל - ללא סינון" />
+        <item
+            android:id="@+id/securityItem"
             android:icon="@drawable/ic_menu_camera"
             android:title="ביטחוני" />
         <item
-            android:id="@+id/nav_gallery"
+            android:id="@+id/economyItem"
             android:icon="@drawable/ic_menu_gallery"
             android:title="כלכלי" />
         <item
-            android:id="@+id/nav_slideshow"
+            android:id="@+id/socialItem"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="חברתי" />
         <item
-            android:id="@+id/nav_manage"
+            android:id="@+id/criminalItem"
             android:icon="@drawable/ic_menu_manage"
             android:title="פלילי" />
     </group>

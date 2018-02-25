@@ -30,10 +30,17 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
 
 import naormalca.com.appmap.model.Report;
 
 import static naormalca.com.appmap.ReportActivity.DB_REPORTS;
+import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_CRIMINAL;
+import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_ECONOMY;
+import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_SECURITY;
+import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_SOCIAL;
 import static naormalca.com.appmap.misc.Constant.REPORT_LAT;
 import static naormalca.com.appmap.misc.Constant.REPORT_LNG;
 import static naormalca.com.appmap.misc.Constant.TLV_LAT;
@@ -41,8 +48,7 @@ import static naormalca.com.appmap.misc.Constant.TLV_LNG;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,OnMapReadyCallback
-        ,GoogleMap.OnInfoWindowClickListener,
-        GoogleMap.OnMapLoadedCallback
+        ,GoogleMap.OnMapLoadedCallback
 {
 
     private DatabaseReference mDatabase;
@@ -56,10 +62,16 @@ public class MainActivity extends AppCompatActivity
     private Marker currentPositionMarker;
     private boolean isMapLoaded = false;
 
+    private int currentReportTypeShow;
+    private boolean isReportTypeFilter;
+
+    ArrayList<Report> mReports = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         mSupportMapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapView);
         mSupportMapFragment.getMapAsync(this);
@@ -141,21 +153,23 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        if (id == R.id.noFilter){
+            isReportTypeFilter = false;
         }
-
+        else if (id == R.id.securityItem) {
+            isReportTypeFilter = true;
+            currentReportTypeShow = MARKER_TYPE_SECURITY;
+        } else if (id == R.id.economyItem) {
+            isReportTypeFilter = true;
+            currentReportTypeShow = MARKER_TYPE_ECONOMY;
+        } else if (id == R.id.socialItem) {
+            isReportTypeFilter = true;
+            currentReportTypeShow = MARKER_TYPE_SOCIAL;
+        } else if (id == R.id.criminalItem) {
+            isReportTypeFilter = true;
+            currentReportTypeShow = MARKER_TYPE_CRIMINAL;
+        }
+        markersSetup();
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -164,11 +178,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         //map ready
-        Toast.makeText(this, "Yay", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Map is ready", Toast.LENGTH_SHORT).show();
         mMap = googleMap;
         mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(TLV_LAT,TLV_LNG)));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(TLV_LAT,TLV_LNG), 10.0f));
+
         showCurrentPositionOnMap(gps);
+        mMap.setOnMapLoadedCallback(this);
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -181,62 +197,49 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-        markersSetup();
-    }
 
-
-    private void markersSetup() {
         mDatabase = FirebaseDatabase.getInstance().getReference(DB_REPORTS);
-        mDatabase.addChildEventListener(new ChildEventListener() {
+        mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Report report = dataSnapshot.getValue(Report.class);
-                refreshMarkers(report);
-                /*mMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(report.getLatitude(),report.getLongitude()))
-                        .title(report.getTitle())
-                        .snippet(report.getTime())
-                        .icon(BitmapDescriptorFactory.defaultMarker(Report.iconColors[report.getType()])));*/
-
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    Report report = postSnapshot.getValue(Report.class);
+                    mReports.add(report);
+                }
+                markersSetup();
             }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                mMap.clear();
-                showCurrentPositionOnMap(gps);
-                Report report = dataSnapshot.getValue(Report.class);
-                refreshMarkers(report);
-                /*mMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(report.getLatitude(),report.getLongitude()))
-                        .title(report.getTitle())
-                        .snippet(report.getTime())
-                        .icon(BitmapDescriptorFactory.defaultMarker(Report.iconColors[report.getType()])));*/
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
             }
         });
+        markersSetup();
     }
+////////////////////////////////////////////////////////////////////
 
-    private void refreshMarkers(Report report) {
-        mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(report.getLatitude(),report.getLongitude()))
-                .title(report.getTitle())
-                .snippet(report.getTime())
-                .icon(BitmapDescriptorFactory.defaultMarker(Report.iconColors[report.getType()])));
+    private void markersSetup() {
+        mMap.clear();
+        showCurrentPositionOnMap(gps);
+        Log.d("MarkersSetup","isReportTYPEFilter : "+isReportTypeFilter);
+        for (Report report: mReports) {
+            if (isReportTypeFilter != true) {
+                Log.d("MarkersSetup","each report : "+report.getTitle());
+                mMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(report.getLatitude(), report.getLongitude()))
+                        .title(report.getTitle())
+                        .snippet(report.getTime())
+                        .icon(BitmapDescriptorFactory
+                                .defaultMarker(Report.iconColors[report.getType()])));
+            } else if(currentReportTypeShow == report.getType()){
+                mMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(report.getLatitude(), report.getLongitude()))
+                        .title(report.getTitle())
+                        .snippet(report.getTime())
+                        .icon(BitmapDescriptorFactory
+                                .defaultMarker(Report.iconColors[report.getType()]))).showInfoWindow();
 
+            }
+        }
     }
 
     public void showCurrentPositionOnMap(GPSTracker gps)
@@ -249,7 +252,7 @@ public class MainActivity extends AppCompatActivity
 
             mMap.addMarker(new MarkerOptions().position(new LatLng(currentLatitude, currentLongitude))
                     .title(currentLatitude+"/"+currentLongitude)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
         }
     }
     private boolean radiusCheck(LatLng newReport) {
@@ -260,11 +263,6 @@ public class MainActivity extends AppCompatActivity
             return true;
         }
         return false;
-    }
-
-    @Override
-    public void onInfoWindowClick(Marker marker) {
-        marker.showInfoWindow();
     }
 
     @Override
