@@ -39,6 +39,7 @@ implements AdapterView.OnItemSelectedListener{
     @BindView(R.id.titleEditText) EditText titleEt;
     @BindView(R.id.descriptionEditText) EditText descEditText;
     @BindView(R.id.spinner) Spinner mSpinner;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

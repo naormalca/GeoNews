@@ -180,14 +180,16 @@ public class MainActivity extends AppCompatActivity
         //map ready
         Toast.makeText(this, "Map is ready", Toast.LENGTH_SHORT).show();
         mMap = googleMap;
+        //focus the camera
         mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(TLV_LAT,TLV_LNG)));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(TLV_LAT,TLV_LNG), 10.0f));
-
         showCurrentPositionOnMap(gps);
+        //call to MapLoaded
         mMap.setOnMapLoadedCallback(this);
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                // A temp marker
                 mLatitudeClick = latLng.latitude;
                 mLongitudeClick = latLng.longitude;
                 if (currentPositionMarker != null)
@@ -199,6 +201,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         mDatabase = FirebaseDatabase.getInstance().getReference(DB_REPORTS);
+
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -215,14 +218,14 @@ public class MainActivity extends AppCompatActivity
         });
         markersSetup();
     }
-////////////////////////////////////////////////////////////////////
+
 
     private void markersSetup() {
         mMap.clear();
         showCurrentPositionOnMap(gps);
         Log.d("MarkersSetup","isReportTYPEFilter : "+isReportTypeFilter);
         for (Report report: mReports) {
-            if (isReportTypeFilter != true) {
+            if (!isReportTypeFilter) {
                 Log.d("MarkersSetup","each report : "+report.getTitle());
                 mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(), report.getLongitude()))
