@@ -14,6 +14,8 @@ import android.widget.Toast;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import org.w3c.dom.Text;
+
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -40,11 +42,15 @@ implements AdapterView.OnItemSelectedListener{
     @BindView(R.id.descriptionEditText) EditText descEditText;
     @BindView(R.id.spinner) Spinner mSpinner;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_report);
+
         ButterKnife.bind(this);
+        //get the reference of the reports from database
         mDatabaseReports = FirebaseDatabase.getInstance().getReference(DB_REPORTS);
         /**
          * Retrieve lat lang from MainActivity
@@ -73,6 +79,7 @@ implements AdapterView.OnItemSelectedListener{
     }
 
 
+
     @OnClick(R.id.sendReportButton)
     public void sendReport(View view){
         Report report = new Report(titleEt.getText().toString(),
@@ -91,7 +98,6 @@ implements AdapterView.OnItemSelectedListener{
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         mSpinnerChoice = i;
-        Toast.makeText(this, i+"", Toast.LENGTH_SHORT).show();
     }
 
     @Override

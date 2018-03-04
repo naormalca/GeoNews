@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity
 
         mSupportMapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapView);
+        //async the map
         mSupportMapFragment.getMapAsync(this);
         gps = new GPSTracker(MainActivity.this);
 
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 if (isMapLoaded) {
                     if (radiusCheck(new LatLng(mLatitudeClick, mLongitudeClick))) {
+                        //pass the point to ReportActivity
                         Intent intent = new Intent(MainActivity.this, ReportActivity.class);
                         intent.putExtra(REPORT_LAT, mLatitudeClick);
                         intent.putExtra(REPORT_LNG, mLongitudeClick);
@@ -186,6 +188,7 @@ public class MainActivity extends AppCompatActivity
         showCurrentPositionOnMap(gps);
         //call to MapLoaded
         mMap.setOnMapLoadedCallback(this);
+
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
