@@ -27,11 +27,10 @@ import android.util.Log;
 
 public class GPSTracker extends Service implements LocationListener {
     private final Context mContext;
-    //
-    boolean isGPSEnabled = false;
-    //
-    boolean isNetworkEnabled = false;
-    boolean canGetLocation = false;
+
+    boolean isGPSEnabled;
+    boolean isNetworkEnabled;
+    boolean canGetLocation;
 
     Location location;
     double latitude = 30.0
@@ -45,15 +44,17 @@ public class GPSTracker extends Service implements LocationListener {
 
     public GPSTracker(Context context){
         this.mContext = context;
-        getLocation();//check network gps,and permission
+        getLocation();
         if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
             ActivityCompat.requestPermissions((Activity) mContext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-
+            ActivityCompat.requestPermissions((Activity) mContext, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},2);
         }else{
             // Write you code here if permission already given.
             getLocation();
         }
+
     }
     @SuppressLint("MissingPermission")
     public Location getLocation() {

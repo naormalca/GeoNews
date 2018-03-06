@@ -2,6 +2,7 @@ package naormalca.com.appmap;
 
 import android.content.Intent;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity
         mSupportMapFragment.getMapAsync(this);
         gps = new GPSTracker(MainActivity.this);
 
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -85,7 +87,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isMapLoaded) {
+                if (isMapLoaded && gps.canGetLocation && gps.location != null) {
                     if (radiusCheck(new LatLng(mLatitudeClick, mLongitudeClick))) {
                         //pass the point to ReportActivity
                         Intent intent = new Intent(MainActivity.this, ReportActivity.class);
@@ -97,9 +99,17 @@ public class MainActivity extends AppCompatActivity
                                 .make(view, "אינך נמצא ברדיוס הדיווח!", Snackbar.LENGTH_LONG);
                         snackbar.show();
                     }
-                } else{
+                } else if (!isMapLoaded){
                     Snackbar snackbar = Snackbar
                             .make(view, "The map not render!", Snackbar.LENGTH_LONG);
+                    snackbar.show();
+                } else if (!gps.canGetLocation){
+                    Snackbar snackbar = Snackbar
+                            .make(view, "GPS IS NOT WORKING", Snackbar.LENGTH_LONG);
+                    snackbar.show();
+                } else if (gps.location == null){
+                    Snackbar snackbar = Snackbar
+                            .make(view, "gps.location", Snackbar.LENGTH_LONG);
                     snackbar.show();
                 }
             }
