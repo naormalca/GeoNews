@@ -1,11 +1,12 @@
 package naormalca.com.appmap;
 
+
 import android.content.Intent;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -26,7 +27,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -36,38 +36,46 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
 import naormalca.com.appmap.model.Report;
+import naormalca.com.appmap.ui.ShowReportFragment;
 
 import static naormalca.com.appmap.ReportActivity.DB_REPORTS;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_CRIMINAL;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_ECONOMY;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_SECURITY;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_SOCIAL;
+import static naormalca.com.appmap.misc.Constant.REPORT_FRAGMENT_TAG;
 import static naormalca.com.appmap.misc.Constant.REPORT_LAT;
 import static naormalca.com.appmap.misc.Constant.REPORT_LNG;
 import static naormalca.com.appmap.misc.Constant.TLV_LAT;
 import static naormalca.com.appmap.misc.Constant.TLV_LNG;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,OnMapReadyCallback
-        ,GoogleMap.OnMapLoadedCallback
+        implements NavigationView.OnNavigationItemSelectedListener,
+        OnMapReadyCallback
+        ,GoogleMap.OnMapLoadedCallback,
+        GoogleMap.OnMarkerClickListener
 {
 
     private DatabaseReference mDatabase;
     SupportMapFragment mSupportMapFragment;
+
 
     GoogleMap mMap;
     private GPSTracker gps;
 
     private double mLatitudeClick;
     private double mLongitudeClick;
-    private Marker currentPositionMarker;
+    private Marker mTempMarkerTarget;
+    private Marker mCurrentPositionMarker;
+
     private boolean isMapLoaded = false;
-
     private int currentReportTypeShow;
-    private boolean isReportTypeFilter;
 
+    private boolean isReportTypeFilter;
     ArrayList<Report> mReports = new ArrayList<>();
 
+    private ShowReportFragment fragment;
+    private FragmentTransaction transaction;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -196,19 +204,26 @@ public class MainActivity extends AppCompatActivity
         mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(TLV_LAT,TLV_LNG)));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(TLV_LAT,TLV_LNG), 10.0f));
         showCurrentPositionOnMap(gps);
-        //call to MapLoaded
+        //call to MapLoaded, MapClickListener, OnMarkerClickListener
         mMap.setOnMapLoadedCallback(this);
-
+        mMap.setOnMarkerClickListener(this);
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
                 // A temp marker
                 mLatitudeClick = latLng.latitude;
                 mLongitudeClick = latLng.longitude;
-                if (currentPositionMarker != null)
-                    currentPositionMarker.remove();
-                currentPositionMarker = mMap.addMarker(new MarkerOptions()
+                if (mTempMarkerTarget != null)
+                    mTempMarkerTarget.remove();
+                mTempMarkerTarget = mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(latLng.latitude, latLng.longitude)));
+
+                // TODO: remove the fragment with randomly click on map
+                /*if (fragment != null){
+                    transaction.remove(fragment);
+                    transaction.commit();
+                }
+                */
 
             }
         });
@@ -245,14 +260,16 @@ public class MainActivity extends AppCompatActivity
                         .title(report.getTitle())
                         .snippet(report.getTime())
                         .icon(BitmapDescriptorFactory
-                                .defaultMarker(Report.iconColors[report.getType()])));
+                                .defaultMarker(Report.iconColors[report.getType()])))
+                        .setTag(report);
             } else if(currentReportTypeShow == report.getType()){
                 mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(), report.getLongitude()))
                         .title(report.getTitle())
                         .snippet(report.getTime())
                         .icon(BitmapDescriptorFactory
-                                .defaultMarker(Report.iconColors[report.getType()]))).showInfoWindow();
+                                .defaultMarker(Report.iconColors[report.getType()])))
+                .setTag(report);
 
             }
         }
@@ -266,7 +283,7 @@ public class MainActivity extends AppCompatActivity
             currentLatitude = gps.getLatitude();
             currentLongitude = gps.getLongitude();
 
-            mMap.addMarker(new MarkerOptions().position(new LatLng(currentLatitude, currentLongitude))
+            mCurrentPositionMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(currentLatitude, currentLongitude))
                     .title(currentLatitude+"/"+currentLongitude)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
         }
@@ -284,5 +301,23 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapLoaded() {
         isMapLoaded = true;
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        if(marker != mCurrentPositionMarker || marker != mTempMarkerTarget){
+            Report report = (Report) marker.getTag();
+            fragment = new ShowReportFragment();
+            fragment.setReport(report);
+
+            // Replace whatever is in the fragment_container view with this fragment,
+            // and add the transaction to the back stack so the user can navigate back
+            transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragment_container, fragment,REPORT_FRAGMENT_TAG);
+            transaction.addToBackStack(null);
+
+            transaction.commit();
+        }
+        return true;
     }
 }
