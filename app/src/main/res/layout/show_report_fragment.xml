@@ -6,7 +6,9 @@
     android:layout_height="wrap_content"
     android:layout_alignParentBottom="true"
     android:orientation="vertical"
-    android:background="@drawable/bg_gradient_report">
+    android:layout_margin="8dp"
+    android:padding="5dp"
+    android:background="@color/fragmentReport">
 
     <TextView
         android:id="@+id/titleTextView"

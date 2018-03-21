@@ -26,7 +26,15 @@
             android:icon="@drawable/ic_menu_manage"
             android:title="פלילי" />
     </group>
+    <item android:title="משתמשים">
+        <menu>
+            <item
+                android:id="@+id/signUpItem"
+                android:icon="@drawable/ic_menu_share"
+                android:title="הירשם" />
 
+        </menu>
+    </item>
     <item android:title="אודות">
         <menu>
             <item

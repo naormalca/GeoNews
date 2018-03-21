@@ -36,6 +36,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
 import naormalca.com.appmap.model.Report;
+import naormalca.com.appmap.ui.RegisterActivity;
 import naormalca.com.appmap.ui.ShowReportFragment;
 
 import static naormalca.com.appmap.ReportActivity.DB_REPORTS;
@@ -188,6 +189,9 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.criminalItem) {
             isReportTypeFilter = true;
             currentReportTypeShow = MARKER_TYPE_CRIMINAL;
+        } else if (id == R.id.signUpItem){
+            Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+            startActivity(intent);
         }
         markersSetup();
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -283,9 +287,10 @@ public class MainActivity extends AppCompatActivity
             currentLatitude = gps.getLatitude();
             currentLongitude = gps.getLongitude();
 
-            mCurrentPositionMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(currentLatitude, currentLongitude))
+            mMap.addMarker(new MarkerOptions().position(new LatLng(currentLatitude, currentLongitude))
                     .title(currentLatitude+"/"+currentLongitude)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)))
+                    .setTag(new Report(false));
         }
     }
     private boolean radiusCheck(LatLng newReport) {
@@ -305,8 +310,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if(marker != mCurrentPositionMarker || marker != mTempMarkerTarget){
-            Report report = (Report) marker.getTag();
+        Report report = (Report) marker.getTag();
+        if(report.isShow()){
             fragment = new ShowReportFragment();
             fragment.setReport(report);
 

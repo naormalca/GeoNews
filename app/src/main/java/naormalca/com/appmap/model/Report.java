@@ -14,6 +14,8 @@ public class Report {
     private int mId;
     private String mTime;
     private int mType;
+    //
+    private boolean show = true ;
     /**type by int
      * 1- Military or Security - RED
      * 2- Economy - CYAN
@@ -25,6 +27,17 @@ public class Report {
     };
     public Report(){
         //Default
+    }
+    public Report(boolean show){
+        this.show = show;
+    }
+
+    public boolean isShow() {
+        return show;
+    }
+
+    public void setShow(boolean show) {
+        this.show = show;
     }
 
     public Report(String title, String description, double latitude, double longitude, int id, String time, int type) {
