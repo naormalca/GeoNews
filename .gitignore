@@ -4,8 +4,8 @@
 /.idea/workspace.xml
 /.idea/libraries
 .DS_Store
-.firebase.json
-.google-services.json
+firebase.json
+google-services.json
 /build
 /captures
 .externalNativeBuild
