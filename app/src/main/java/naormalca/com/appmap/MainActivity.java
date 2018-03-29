@@ -36,6 +36,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
 import naormalca.com.appmap.model.Report;
+import naormalca.com.appmap.ui.LoginActivity;
 import naormalca.com.appmap.ui.RegisterActivity;
 import naormalca.com.appmap.ui.ShowReportFragment;
 
@@ -192,9 +193,12 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.signUpItem){
             Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
             startActivity(intent);
+        } else if (id == R.id.signInItem){
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
         }
         markersSetup();
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -297,10 +301,7 @@ public class MainActivity extends AppCompatActivity
         Location target = new Location("target");
         target.setLatitude(newReport.latitude);
         target.setLongitude(newReport.longitude);
-        if (gps.location.distanceTo(target) < 2000){
-            return true;
-        }
-        return false;
+        return gps.location.distanceTo(target) < 2000;
     }
 
     @Override

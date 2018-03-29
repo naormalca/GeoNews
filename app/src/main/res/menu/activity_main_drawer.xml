@@ -32,6 +32,10 @@
                 android:id="@+id/signUpItem"
                 android:icon="@drawable/ic_menu_share"
                 android:title="הירשם" />
+            <item
+                android:id="@+id/signInItem"
+                android:icon="@drawable/com_facebook_button_send_background"
+                android:title="התחברות"/>
 
         </menu>
     </item>

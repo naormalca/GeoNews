@@ -18,9 +18,16 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
+import naormalca.com.appmap.Firebase.FirebaseDB;
 import naormalca.com.appmap.MainActivity;
 import naormalca.com.appmap.R;
+import naormalca.com.appmap.misc.utils;
+import naormalca.com.appmap.model.Users;
+
+import static naormalca.com.appmap.misc.utils.parseFullName;
 
 public class RegisterActivity extends AppCompatActivity
 implements View.OnClickListener {
@@ -31,6 +38,8 @@ implements View.OnClickListener {
     private EditText emailEditText;
     private EditText passwordEditText;
     private ProgressBar progressBar;
+
+    private DatabaseReference mDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +53,7 @@ implements View.OnClickListener {
         progressBar = findViewById(R.id.progressBar);
 
         mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         signUpButton.setOnClickListener(this);
     }
@@ -56,7 +66,7 @@ implements View.OnClickListener {
     }
 
     private void registerUser() {
-        String email = emailEditText.getText().toString().trim();
+        final String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
 
         if (email.isEmpty()) {
@@ -91,6 +101,15 @@ implements View.OnClickListener {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 progressBar.setVisibility(View.GONE);
                 if (task.isSuccessful()) {
+                    Toast.makeText(getApplicationContext(), "נרשמת בהצלחה!", Toast.LENGTH_SHORT).show();
+                    String fullName = nameEditText.getText().toString();
+                    // Split the fullName to first and last name
+                    String[] nameArray = utils.parseFullName(fullName);
+                    // Create new user
+                    Users newUser = new Users(nameArray[0], nameArray[1],email );
+                    // Get current user ID & push to database
+                    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    mDatabase.child(FirebaseDB.USERS_DB).child(user.getUid()).setValue(newUser);
                     finish();
                     startActivity(new Intent(RegisterActivity.this, MainActivity.class));
                 } else {
