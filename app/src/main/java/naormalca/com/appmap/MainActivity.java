@@ -17,6 +17,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -27,6 +29,9 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -35,12 +40,14 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
+import naormalca.com.appmap.Firebase.FirebaseDB;
 import naormalca.com.appmap.model.Report;
+import naormalca.com.appmap.model.Users;
 import naormalca.com.appmap.ui.LoginActivity;
 import naormalca.com.appmap.ui.RegisterActivity;
 import naormalca.com.appmap.ui.ShowReportFragment;
 
-import static naormalca.com.appmap.ReportActivity.DB_REPORTS;
+import static naormalca.com.appmap.Firebase.FirebaseDB.DB_REPORTS;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_CRIMINAL;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_ECONOMY;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_SECURITY;
@@ -58,7 +65,10 @@ public class MainActivity extends AppCompatActivity
         GoogleMap.OnMarkerClickListener
 {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     private DatabaseReference mDatabase;
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
     SupportMapFragment mSupportMapFragment;
 
 
@@ -78,6 +88,9 @@ public class MainActivity extends AppCompatActivity
 
     private ShowReportFragment fragment;
     private FragmentTransaction transaction;
+    private NavigationView navigationView;
+
+    private TextView userHelloMsg;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -133,9 +146,46 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        // Hello navigation bar user message
+        LinearLayout linearLayout = (LinearLayout) navigationView.getHeaderView(0);
+        TextView userHelloMsg = linearLayout.findViewById(R.id.helloMsgItem);
 
 
+        mAuth = FirebaseAuth.getInstance();
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
+    }
+
+    private void updateUI(final FirebaseUser user) {
+        Log.d(TAG, user.getEmail()+ user.getUid());
+        if (user != null){
+            mDatabase = FirebaseDatabase.getInstance().getReference(FirebaseDB.USERS_DB);
+            mDatabase.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                        Users userData = postSnapshot.getValue(Users.class);
+                        Log.d(TAG,userData.getFirstName()+" "+userData.getLastName());
+                        if (userData.getID() == user.getUid()){
+                            userHelloMsg.setText(userData.getFirstName()+"שלום, ");
+                        }
+
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
     }
 
     @Override
@@ -197,6 +247,7 @@ public class MainActivity extends AppCompatActivity
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
         }
+
         markersSetup();
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

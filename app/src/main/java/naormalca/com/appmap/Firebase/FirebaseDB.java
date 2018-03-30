@@ -6,4 +6,5 @@ package naormalca.com.appmap.Firebase;
 
 public class FirebaseDB {
     public static final String USERS_DB = "users";
+    public static final String DB_REPORTS = "Reports";
 }

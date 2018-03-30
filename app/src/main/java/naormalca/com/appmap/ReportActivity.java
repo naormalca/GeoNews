@@ -24,12 +24,12 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import naormalca.com.appmap.model.Report;
 
+import static naormalca.com.appmap.Firebase.FirebaseDB.DB_REPORTS;
 import static naormalca.com.appmap.misc.Constant.REPORT_LAT;
 import static naormalca.com.appmap.misc.Constant.REPORT_LNG;
 
 public class ReportActivity extends AppCompatActivity
 implements AdapterView.OnItemSelectedListener{
-    public static final String DB_REPORTS = "Reports";
 
     private double mLatitudeReport;
     private double mLongitudeReport;

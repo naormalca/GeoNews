@@ -8,13 +8,16 @@ public class Users {
     private String mFirstName;
     private String mLastName;
     private String mEmail;
+    private String mID;
     public Users(){
 
     }
-    public Users(String firstName, String lastName, String email) {
+    public Users(String firstName, String lastName, String email, String id) {
         mFirstName = firstName;
         mLastName = lastName;
         mEmail = email;
+        mID = id;
+
     }
 
     public String getFirstName() {
@@ -39,5 +42,13 @@ public class Users {
 
     public void setEmail(String email) {
         mEmail = email;
+    }
+
+    public String getID() {
+        return mID;
+    }
+
+    public void setID(String ID) {
+        mID = ID;
     }
 }

@@ -37,7 +37,6 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     compile 'com.firebaseui:firebase-ui-auth:3.2.2'
 
-    // Required only if Facebook login support is required
-    compile('com.facebook.android:facebook-android-sdk:4.27.0')
+
 }
 apply plugin: 'com.google.gms.google-services'

@@ -106,9 +106,9 @@ implements View.OnClickListener {
                     // Split the fullName to first and last name
                     String[] nameArray = utils.parseFullName(fullName);
                     // Create new user
-                    Users newUser = new Users(nameArray[0], nameArray[1],email );
-                    // Get current user ID & push to database
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                    Users newUser = new Users(nameArray[0], nameArray[1],email, user.getUid());
+                    // Get current user ID & push to database
                     mDatabase.child(FirebaseDB.USERS_DB).child(user.getUid()).setValue(newUser);
                     finish();
                     startActivity(new Intent(RegisterActivity.this, MainActivity.class));
@@ -123,6 +123,6 @@ implements View.OnClickListener {
 
                 }
             }
-        });
+    });
     }
 }
