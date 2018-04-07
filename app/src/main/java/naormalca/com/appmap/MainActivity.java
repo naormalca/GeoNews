@@ -1,12 +1,15 @@
 package naormalca.com.appmap;
 
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -31,7 +34,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -69,8 +71,10 @@ public class MainActivity extends AppCompatActivity
     private DatabaseReference mDatabase;
     private FirebaseUser mUser;
     private FirebaseAuth mAuth;
-    SupportMapFragment mSupportMapFragment;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
+    private Users currentUserData;
+    SupportMapFragment mSupportMapFragment;
 
     GoogleMap mMap;
     private GPSTracker gps;
@@ -148,46 +152,80 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         // Hello navigation bar user message
         LinearLayout linearLayout = (LinearLayout) navigationView.getHeaderView(0);
-        TextView userHelloMsg = linearLayout.findViewById(R.id.helloMsgItem);
+        userHelloMsg = linearLayout.findViewById(R.id.helloMsgItem);
+
 
 
         mAuth = FirebaseAuth.getInstance();
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    Log.d(TAG, "onAuthStateChanged:signed_out");
+                }
+                updateUI(user);
+            }
+        };
     }
 
     @Override
     protected void onStart() {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        updateUI(currentUser);
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 
-    private void updateUI(final FirebaseUser user) {
-        Log.d(TAG, user.getEmail()+ user.getUid());
+    private void updateUI(FirebaseUser user) {
         if (user != null){
-            mDatabase = FirebaseDatabase.getInstance().getReference(FirebaseDB.USERS_DB);
-            mDatabase.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                        Users userData = postSnapshot.getValue(Users.class);
-                        Log.d(TAG,userData.getFirstName()+" "+userData.getLastName());
-                        if (userData.getID() == user.getUid()){
-                            userHelloMsg.setText(userData.getFirstName()+"שלום, ");
-                        }
+            Log.d(TAG, user.getEmail()+ user.getUid());
+            getUserInfoAndUpdate(user.getUid());
+        } else{
+            guestInfoUpdate();
+        }
+    }
 
+    private void guestInfoUpdate() {
+
+        userHelloMsg.setText("שלום, אורח");
+    }
+
+    /*TODO: Change function first retrieve the user data, after change in ui
+    */
+    private void getUserInfoAndUpdate(final String userId){
+
+        mDatabase = FirebaseDatabase.getInstance().getReference(FirebaseDB.USERS_DB);
+        mDatabase.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    currentUserData = postSnapshot.getValue(Users.class);
+                    Log.d(TAG,currentUserData.getFirstName()+" "+currentUserData.getLastName()+"inOnDataChange"+currentUserData.getID());
+                    if (currentUserData.getID().equals(userId)){
+                        userHelloMsg = (TextView) findViewById(R.id.helloMsgItem);
+                        userHelloMsg.setText(currentUserData.getFirstName()+"שלום, ");
                     }
 
                 }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
+            }
 
-                }
-            });
-        }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
     }
-
     @Override
     public void onBackPressed() {
         DrawerLayout drawer =  findViewById(R.id.drawer_layout);
@@ -246,6 +284,8 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.signInItem){
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
+        } else if (id == R.id.signOutItem){
+            signOut();
         }
 
         markersSetup();
@@ -253,7 +293,25 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
+    private void signOut() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setMessage("האם תרצה להתנתק?");
+        alert.setCancelable(false);
+        alert.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                mAuth.signOut();
+                updateUI(null);
+            }
+        });
+        alert.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        alert.show();
+    }
     @Override
     public void onMapReady(GoogleMap googleMap) {
         //map ready
@@ -334,8 +392,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void showCurrentPositionOnMap(GPSTracker gps)
-    {
+    public void showCurrentPositionOnMap(GPSTracker gps){
         double currentLongitude, currentLatitude;
         if(gps.isCanGetLocation()) {
             Log.d("gpstracker","showCurrentPosition");
