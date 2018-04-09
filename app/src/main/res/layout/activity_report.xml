@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="naormalca.com.appmap.ReportActivity">
+    tools:context="naormalca.com.appmap.ui.ReportActivity">
 
     <LinearLayout
         android:id="@+id/linearLayout"

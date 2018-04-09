@@ -49,6 +49,7 @@ import naormalca.com.appmap.model.Report;
 import naormalca.com.appmap.model.Users;
 import naormalca.com.appmap.ui.LoginActivity;
 import naormalca.com.appmap.ui.RegisterActivity;
+import naormalca.com.appmap.ui.ReportActivity;
 import naormalca.com.appmap.ui.ShowReportFragment;
 
 import static naormalca.com.appmap.Firebase.FirebaseDB.DB_REPORTS;
@@ -122,6 +123,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // TODO: Clean function, split to checks and actions
                 if (isMapLoaded && gps.isCanGetLocation() && gps.getLocation() != null) {
                     if (radiusCheck(new LatLng(mLatitudeClick, mLongitudeClick))) {
                         //pass the point to ReportActivity
@@ -221,8 +223,10 @@ public class MainActivity extends AppCompatActivity
                     currentUserData = postSnapshot.getValue(Users.class);
                     Log.d(TAG,currentUserData.getFirstName()+" "+currentUserData.getLastName()+"inOnDataChange"+currentUserData.getID());
                     if (currentUserData.getID().equals(userId)){
+                        // Change the hello msg at navigation bar
                         mUserHelloMsg = findViewById(R.id.helloMsgItem);
-                        mUserHelloMsg.setText(currentUserData.getFirstName()+"שלום, ");
+                        mUserHelloMsg.setText(" שלום, "+currentUserData.getFirstName());
+                        toggleAuthOptions(true);
                     }
 
                 }
@@ -236,6 +240,20 @@ public class MainActivity extends AppCompatActivity
         });
 
     }
+
+    private void toggleAuthOptions(boolean visible) {
+        // Find the menu item and change visibility
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        Menu menu = navigationView.getMenu();
+        MenuItem signInItem = menu.findItem(R.id.signInItem);
+        MenuItem signOutItem = menu.findItem(R.id.signOutItem);
+        MenuItem signUpItem = menu.findItem(R.id.signUpItem);
+        // If @visible is true, there user connected else it`s guest
+        signInItem.setVisible(!visible);
+        signUpItem.setVisible(!visible);
+        signOutItem.setVisible(visible);
+    }
+
 
     private void signOut() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -329,6 +347,7 @@ public class MainActivity extends AppCompatActivity
     }
     private void guestInfoUpdate() {
         mUserHelloMsg.setText("שלום, אורח");
+        toggleAuthOptions(false);
     }
     /*
     *

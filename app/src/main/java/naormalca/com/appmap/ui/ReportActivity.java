@@ -1,4 +1,4 @@
-package naormalca.com.appmap;
+package naormalca.com.appmap.ui;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +22,7 @@ import java.util.Locale;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import naormalca.com.appmap.R;
 import naormalca.com.appmap.model.Report;
 
 import static naormalca.com.appmap.Firebase.FirebaseDB.DB_REPORTS;
