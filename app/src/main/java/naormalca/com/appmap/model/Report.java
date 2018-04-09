@@ -28,12 +28,14 @@ public class Report {
     public Report(){
         //Default
     }
-    public Report(boolean show){
-        this.show = show;
-    }
-
     public boolean isShow() {
         return show;
+    }
+    /*
+    Every marker has a report, marker with out report no needed to show.
+     */
+    public Report(boolean show){
+        this.show = show;
     }
 
     public void setShow(boolean show) {

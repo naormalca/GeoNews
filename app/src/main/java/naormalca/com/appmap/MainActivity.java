@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -43,6 +44,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 
 import naormalca.com.appmap.Firebase.FirebaseDB;
+import naormalca.com.appmap.misc.GPSTracker;
 import naormalca.com.appmap.model.Report;
 import naormalca.com.appmap.model.Users;
 import naormalca.com.appmap.ui.LoginActivity;
@@ -74,8 +76,8 @@ public class MainActivity extends AppCompatActivity
     private FirebaseAuth.AuthStateListener mAuthListener;
 
     private Users currentUserData;
-    SupportMapFragment mSupportMapFragment;
 
+    private SupportMapFragment mSupportMapFragment;
     GoogleMap mMap;
     private GPSTracker gps;
 
@@ -85,16 +87,22 @@ public class MainActivity extends AppCompatActivity
     private Marker mCurrentPositionMarker;
 
     private boolean isMapLoaded = false;
-    private int currentReportTypeShow;
+    private int mCurrentReportTypeShow;
 
-    private boolean isReportTypeFilter;
-    ArrayList<Report> mReports = new ArrayList<>();
+    private boolean mIsReportTypeFilter;
+    private ArrayList<Report> mReports = new ArrayList<>();
 
-    private ShowReportFragment fragment;
-    private FragmentTransaction transaction;
+    // Report fragment
+    private ShowReportFragment mShowReportFragment;
+    private FragmentTransaction mFragmentTransaction;
     private NavigationView navigationView;
 
-    private TextView userHelloMsg;
+    private TextView mUserHelloMsg;
+    /*
+    *
+    * Life-Cycle functions
+    *
+    * */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,7 +122,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isMapLoaded && gps.canGetLocation && gps.location != null) {
+                if (isMapLoaded && gps.isCanGetLocation() && gps.getLocation() != null) {
                     if (radiusCheck(new LatLng(mLatitudeClick, mLongitudeClick))) {
                         //pass the point to ReportActivity
                         Intent intent = new Intent(MainActivity.this, ReportActivity.class);
@@ -130,11 +138,11 @@ public class MainActivity extends AppCompatActivity
                     Snackbar snackbar = Snackbar
                             .make(view, "The map not render!", Snackbar.LENGTH_LONG);
                     snackbar.show();
-                } else if (!gps.canGetLocation){
+                } else if (!gps.isCanGetLocation()){
                     Snackbar snackbar = Snackbar
                             .make(view, "GPS IS NOT WORKING", Snackbar.LENGTH_LONG);
                     snackbar.show();
-                } else if (gps.location == null){
+                } else if (gps.getLocation() == null){
                     Snackbar snackbar = Snackbar
                             .make(view, "gps.location", Snackbar.LENGTH_LONG);
                     snackbar.show();
@@ -152,7 +160,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         // Hello navigation bar user message
         LinearLayout linearLayout = (LinearLayout) navigationView.getHeaderView(0);
-        userHelloMsg = linearLayout.findViewById(R.id.helloMsgItem);
+        mUserHelloMsg = linearLayout.findViewById(R.id.helloMsgItem);
 
 
 
@@ -185,19 +193,21 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void updateUI(FirebaseUser user) {
-        if (user != null){
-            Log.d(TAG, user.getEmail()+ user.getUid());
-            getUserInfoAndUpdate(user.getUid());
-        } else{
-            guestInfoUpdate();
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer =  findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            //TODO: [UX] add a alert message before exit from app
+            super.onBackPressed();
         }
     }
-
-    private void guestInfoUpdate() {
-
-        userHelloMsg.setText("שלום, אורח");
-    }
+    /*
+    *
+    * Authentication functions
+    *
+    * */
 
     /*TODO: Change function first retrieve the user data, after change in ui
     */
@@ -211,8 +221,8 @@ public class MainActivity extends AppCompatActivity
                     currentUserData = postSnapshot.getValue(Users.class);
                     Log.d(TAG,currentUserData.getFirstName()+" "+currentUserData.getLastName()+"inOnDataChange"+currentUserData.getID());
                     if (currentUserData.getID().equals(userId)){
-                        userHelloMsg = (TextView) findViewById(R.id.helloMsgItem);
-                        userHelloMsg.setText(currentUserData.getFirstName()+"שלום, ");
+                        mUserHelloMsg = findViewById(R.id.helloMsgItem);
+                        mUserHelloMsg.setText(currentUserData.getFirstName()+"שלום, ");
                     }
 
                 }
@@ -226,16 +236,31 @@ public class MainActivity extends AppCompatActivity
         });
 
     }
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer =  findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
 
+    private void signOut() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setMessage("האם תרצה להתנתק?");
+        alert.setCancelable(false);
+        alert.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                mAuth.signOut();
+                updateUI(null);
+            }
+        });
+        alert.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.dismiss();
+            }
+        });
+        alert.show();
+    }
+    /*
+    *
+    * UI Functions
+    *
+    * */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -264,20 +289,20 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         if (id == R.id.noFilter){
-            isReportTypeFilter = false;
+            mIsReportTypeFilter = false;
         }
         else if (id == R.id.securityItem) {
-            isReportTypeFilter = true;
-            currentReportTypeShow = MARKER_TYPE_SECURITY;
+            mIsReportTypeFilter = true;
+            mCurrentReportTypeShow = MARKER_TYPE_SECURITY;
         } else if (id == R.id.economyItem) {
-            isReportTypeFilter = true;
-            currentReportTypeShow = MARKER_TYPE_ECONOMY;
+            mIsReportTypeFilter = true;
+            mCurrentReportTypeShow = MARKER_TYPE_ECONOMY;
         } else if (id == R.id.socialItem) {
-            isReportTypeFilter = true;
-            currentReportTypeShow = MARKER_TYPE_SOCIAL;
+            mIsReportTypeFilter = true;
+            mCurrentReportTypeShow = MARKER_TYPE_SOCIAL;
         } else if (id == R.id.criminalItem) {
-            isReportTypeFilter = true;
-            currentReportTypeShow = MARKER_TYPE_CRIMINAL;
+            mIsReportTypeFilter = true;
+            mCurrentReportTypeShow = MARKER_TYPE_CRIMINAL;
         } else if (id == R.id.signUpItem){
             Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
             startActivity(intent);
@@ -293,25 +318,25 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-    private void signOut() {
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setMessage("האם תרצה להתנתק?");
-        alert.setCancelable(false);
-        alert.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                mAuth.signOut();
-                updateUI(null);
-            }
-        });
-        alert.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.dismiss();
-            }
-        });
-        alert.show();
+
+    private void updateUI(FirebaseUser user) {
+        if (user != null){
+            Log.d(TAG, user.getEmail()+ user.getUid());
+            getUserInfoAndUpdate(user.getUid());
+        } else{
+            guestInfoUpdate();
+        }
     }
+    private void guestInfoUpdate() {
+        mUserHelloMsg.setText("שלום, אורח");
+    }
+    /*
+    *
+    * Map functions
+    *
+    *
+    * */
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         //map ready
@@ -330,17 +355,19 @@ public class MainActivity extends AppCompatActivity
                 // A temp marker
                 mLatitudeClick = latLng.latitude;
                 mLongitudeClick = latLng.longitude;
+                // Remove the last temp marker if exist.
                 if (mTempMarkerTarget != null)
                     mTempMarkerTarget.remove();
                 mTempMarkerTarget = mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(latLng.latitude, latLng.longitude)));
 
-                // TODO: remove the fragment with randomly click on map
-                /*if (fragment != null){
-                    transaction.remove(fragment);
-                    transaction.commit();
+                // Remove current report fragment when user click randomly on map.
+                if (mShowReportFragment != null){
+                    getSupportFragmentManager().beginTransaction()
+                            .remove(mShowReportFragment).commit();
+
                 }
-                */
+
 
             }
         });
@@ -364,13 +391,12 @@ public class MainActivity extends AppCompatActivity
         markersSetup();
     }
 
-
     private void markersSetup() {
         mMap.clear();
         showCurrentPositionOnMap(gps);
-        Log.d("MarkersSetup","isReportTYPEFilter : "+isReportTypeFilter);
+        Log.d("MarkersSetup","isReportTYPEFilter : "+ mIsReportTypeFilter);
         for (Report report: mReports) {
-            if (!isReportTypeFilter) {
+            if (!mIsReportTypeFilter) {
                 Log.d("MarkersSetup","each report : "+report.getTitle());
                 mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(), report.getLongitude()))
@@ -379,7 +405,7 @@ public class MainActivity extends AppCompatActivity
                         .icon(BitmapDescriptorFactory
                                 .defaultMarker(Report.iconColors[report.getType()])))
                         .setTag(report);
-            } else if(currentReportTypeShow == report.getType()){
+            } else if(mCurrentReportTypeShow == report.getType()){
                 mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(), report.getLongitude()))
                         .title(report.getTitle())
@@ -409,7 +435,7 @@ public class MainActivity extends AppCompatActivity
         Location target = new Location("target");
         target.setLatitude(newReport.latitude);
         target.setLongitude(newReport.longitude);
-        return gps.location.distanceTo(target) < 2000;
+        return gps.getLocation().distanceTo(target) < 2000;
     }
 
     @Override
@@ -419,18 +445,22 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onMarkerClick(Marker marker) {
+        // Get the report object from clicked marker
         Report report = (Report) marker.getTag();
-        if(report.isShow()){
-            fragment = new ShowReportFragment();
-            fragment.setReport(report);
+        if(report != null) {
+            if (report.isShow()) {
+                mShowReportFragment = new ShowReportFragment();
+                mShowReportFragment.setReport(report);
 
-            // Replace whatever is in the fragment_container view with this fragment,
-            // and add the transaction to the back stack so the user can navigate back
-            transaction = getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, fragment,REPORT_FRAGMENT_TAG);
-            transaction.addToBackStack(null);
+                // Replace whatever is in the fragment_container view with this mShowReportFragment,
+                // and add the mFragmentTransaction to the back stack so the user can navigate back
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                mFragmentTransaction = fragmentManager.beginTransaction();
+                mFragmentTransaction.replace(R.id.fragment_container, mShowReportFragment, REPORT_FRAGMENT_TAG);
+                //mFragmentTransaction.addToBackStack(null);
 
-            transaction.commit();
+                mFragmentTransaction.commit();
+            }
         }
         return true;
     }
