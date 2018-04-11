@@ -23,7 +23,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
-
+//https://stackoverflow.com/questions/28535703/best-way-to-get-user-gps-location-in-background-in-android
 public class GPSTracker extends Service implements LocationListener {
     private final Context mContext;
 

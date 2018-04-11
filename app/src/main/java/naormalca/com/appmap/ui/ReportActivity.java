@@ -192,9 +192,9 @@ implements AdapterView.OnItemSelectedListener{
                    "There was a problem accessing your device's external storage.",
                    Toast.LENGTH_LONG).show();
        } else{
-           /*TODO:This 2 lines are not the best practice!!! it`s just ignore security warrings,
+           /*TODO:This 2 lines are not the best practice!!! it`s just ignore security warnings,
             The right way is with Content Provider has mention here:https://stackoverflow.com/questions/38200282/android-os-fileuriexposedexception-file-storage-emulated-0-test-txt-exposed
-
+                or this https://stackoverflow.com/questions/49775782/camera-isnt-working-when-trying-to-save-in-internal-folder-using-fileprovider
            */
            StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
            StrictMode.setVmPolicy(builder.build());
