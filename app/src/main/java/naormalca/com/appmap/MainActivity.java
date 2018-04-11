@@ -205,6 +205,7 @@ public class MainActivity extends AppCompatActivity
             super.onBackPressed();
         }
     }
+
     /*
     *
     * Authentication functions
@@ -253,7 +254,6 @@ public class MainActivity extends AppCompatActivity
         signUpItem.setVisible(!visible);
         signOutItem.setVisible(visible);
     }
-
 
     private void signOut() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -450,6 +450,7 @@ public class MainActivity extends AppCompatActivity
                     .setTag(new Report(false));
         }
     }
+
     private boolean radiusCheck(LatLng newReport) {
         Location target = new Location("target");
         target.setLatitude(newReport.latitude);

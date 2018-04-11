@@ -1,5 +1,7 @@
 package naormalca.com.appmap.model;
 
+import android.net.Uri;
+
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
@@ -14,6 +16,9 @@ public class Report {
     private int mId;
     private String mTime;
     private int mType;
+    private String mUserID;
+    private String mUserFullName;
+    private String mUrlImage;
     //
     private boolean show = true ;
     /**type by int
@@ -42,7 +47,9 @@ public class Report {
         this.show = show;
     }
 
-    public Report(String title, String description, double latitude, double longitude, int id, String time, int type) {
+    public Report(String title, String description, double latitude,
+                  double longitude, int id, String time, int type,
+                  String userID, String urlImage) {
         mTitle = title;
         mDescription = description;
         mLatitude = latitude;
@@ -50,6 +57,9 @@ public class Report {
         mId = id;
         mTime = time;
         mType = type;
+      //  mUserFullName = userFullName;
+        mUserID = userID;
+        mUrlImage = urlImage;
     }
 
     public int getType() {
@@ -108,5 +118,27 @@ public class Report {
         mTime = time;
     }
 
+    public String getUserID() {
+        return mUserID;
+    }
 
+    public void setUserID(String userID) {
+        mUserID = userID;
+    }
+
+    public String getUrlImage() {
+        return mUrlImage;
+    }
+
+    public void setUrlImage(String urlImage) {
+        mUrlImage = urlImage;
+    }
+
+    /* public String getUserFullName() {
+        return mUserFullName;
+    }
+
+   public void setUserFullName(String userFullName) {
+        mUserFullName = userFullName;
+    }*/
 }

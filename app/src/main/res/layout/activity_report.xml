@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="naormalca.com.appmap.ui.ReportActivity">
 
+
     <LinearLayout
         android:id="@+id/linearLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+       >
 
         <TextView
             android:id="@+id/textView2"
@@ -39,7 +38,6 @@
             android:text="תיאור הדיווח" />
 
 
-
         <EditText
             android:id="@+id/descriptionEditText"
             android:layout_width="match_parent"
@@ -47,29 +45,62 @@
             android:layout_margin="8dp"
             android:ems="10"
             android:inputType="textMultiLine" />
+
         <TextView
             style="@style/reportTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="סיווג האירוע" />
+
         <Spinner
-            android:layout_margin="8dp"
             android:id="@+id/spinner"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp" />
+
     </LinearLayout>
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="135dp"
+        android:layout_height="171dp"
+
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/linearLayout"
+        android:layout_marginStart="17dp"
+        android:layout_marginTop="12dp"
+        app:srcCompat="@color/cardview_dark_background"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
+    <Button
+        android:id="@+id/addPhotoBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/imageView"
+        android:layout_marginEnd="14dp"
+        android:layout_marginTop="32dp"
+        android:layout_toStartOf="@+id/takePhotoBtn"
+        android:text="הוסף תמונה" />
 
     <Button
         android:id="@+id/sendReportButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="48dp"
-        android:layout_marginTop="8dp"
+        android:layout_alignBottom="@+id/imageView"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="54dp"
         android:text="דווח"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
-        app:layout_constraintVertical_bias="0.842" />
+        tools:layout_editor_absoluteY="8dp" />
 
-</android.support.constraint.ConstraintLayout>
+    <Button
+        android:id="@+id/takePhotoBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/addPhotoBtn"
+        android:layout_alignBottom="@+id/addPhotoBtn"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="14dp"
+        android:text="צלם תמונה"
+        tools:layout_editor_absoluteY="23dp" />
+
+</RelativeLayout>
