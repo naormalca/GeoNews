@@ -108,17 +108,17 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        // Map content fragment
         mSupportMapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapView);
         //async the map
         mSupportMapFragment.getMapAsync(this);
         gps = new GPSTracker(MainActivity.this);
 
-
+        // Setup toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        // Setup floating report button
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -126,12 +126,13 @@ public class MainActivity extends AppCompatActivity
                 // TODO: Clean function, split to checks and actions
                 if (isMapLoaded && gps.isCanGetLocation() && gps.getLocation() != null) {
                     if (radiusCheck(new LatLng(mLatitudeClick, mLongitudeClick))) {
-                        //pass the point to ReportActivity
+                        //pass the location to ReportActivity
                         Intent intent = new Intent(MainActivity.this, ReportActivity.class);
                         intent.putExtra(REPORT_LAT, mLatitudeClick);
                         intent.putExtra(REPORT_LNG, mLongitudeClick);
                         startActivity(intent);
                     } else {
+                        // Cant report radius check fail
                         Snackbar snackbar = Snackbar
                                 .make(view, "אינך נמצא ברדיוס הדיווח!", Snackbar.LENGTH_LONG);
                         snackbar.show();
@@ -151,13 +152,13 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
-
+        // Setup action bar
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
+        // Setup navigation bar and listener
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         // Hello navigation bar user message
@@ -165,7 +166,7 @@ public class MainActivity extends AppCompatActivity
         mUserHelloMsg = linearLayout.findViewById(R.id.helloMsgItem);
 
 
-
+        // Authentication
         mAuth = FirebaseAuth.getInstance();
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -358,14 +359,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        //map ready
+        // Map ready
         Toast.makeText(this, "Map is ready", Toast.LENGTH_SHORT).show();
         mMap = googleMap;
-        //focus the camera
+        // Focus the camera
         mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(TLV_LAT,TLV_LNG)));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(TLV_LAT,TLV_LNG), 10.0f));
         showCurrentPositionOnMap(gps);
-        //call to MapLoaded, MapClickListener, OnMarkerClickListener
+        // Call to MapLoaded, MapClickListener, OnMarkerClickListener
         mMap.setOnMapLoadedCallback(this);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -384,22 +385,21 @@ public class MainActivity extends AppCompatActivity
                 if (mShowReportFragment != null){
                     getSupportFragmentManager().beginTransaction()
                             .remove(mShowReportFragment).commit();
-
                 }
-
-
             }
         });
 
+        // Retrieve reports from DB
         mDatabase = FirebaseDatabase.getInstance().getReference(DB_REPORTS);
-
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    // Add each report to array list
                     Report report = postSnapshot.getValue(Report.class);
                     mReports.add(report);
                 }
+                //
                 markersSetup();
             }
             @Override
@@ -407,15 +407,20 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+        // Show report has markers on map
         markersSetup();
     }
 
     private void markersSetup() {
+        // Clear map
         mMap.clear();
+        // Show current position by gps
         showCurrentPositionOnMap(gps);
         Log.d("MarkersSetup","isReportTYPEFilter : "+ mIsReportTypeFilter);
         for (Report report: mReports) {
+            // Check if there report filter
             if (!mIsReportTypeFilter) {
+                // Non-filter - show all reports
                 Log.d("MarkersSetup","each report : "+report.getTitle());
                 mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(), report.getLongitude()))
@@ -425,6 +430,7 @@ public class MainActivity extends AppCompatActivity
                                 .defaultMarker(Report.iconColors[report.getType()])))
                         .setTag(report);
             } else if(mCurrentReportTypeShow == report.getType()){
+                // Show only specific filter
                 mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(), report.getLongitude()))
                         .title(report.getTitle())
@@ -438,6 +444,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void showCurrentPositionOnMap(GPSTracker gps){
+        // Get current postion from GPS tracker and set a temp marker
         double currentLongitude, currentLatitude;
         if(gps.isCanGetLocation()) {
             Log.d("gpstracker","showCurrentPosition");
@@ -452,6 +459,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private boolean radiusCheck(LatLng newReport) {
+        // Check current position radius 2km around
         Location target = new Location("target");
         target.setLatitude(newReport.latitude);
         target.setLongitude(newReport.longitude);
