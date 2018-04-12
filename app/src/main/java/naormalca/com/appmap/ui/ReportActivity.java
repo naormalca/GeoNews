@@ -124,6 +124,7 @@ implements AdapterView.OnItemSelectedListener{
 
         final String userID = user != null ? user.getUid() : null;
         if (mSelectedImage != null){
+            //
             StorageReference imageRef = mStorageReference.child("imagesReport/"+mSelectedImage.getLastPathSegment());
             UploadTask uploadTask = imageRef.putFile(mSelectedImage);
             // Register observers to listen for when the download is done or if it fails
@@ -138,6 +139,7 @@ implements AdapterView.OnItemSelectedListener{
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                     String downloadUrl = taskSnapshot.getDownloadUrl().toString();
+                    // Create report object and push him to DB
                     Report report = new Report(titleEt.getText().toString(),
                             descEditText.getText().toString(), mLatitudeReport, mLongitudeReport,
                             0, getTime(), mSpinnerChoice,

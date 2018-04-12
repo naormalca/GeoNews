@@ -1,5 +1,8 @@
 package naormalca.com.appmap.misc;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
 /**
  * Created by Naor on 29/03/2018.
  */
@@ -9,4 +12,5 @@ public class utils {
         fullName = fullName.trim();
         return fullName.split(" ");
     }
+
 }

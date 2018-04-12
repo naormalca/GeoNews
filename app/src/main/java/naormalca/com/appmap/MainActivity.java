@@ -3,6 +3,8 @@ package naormalca.com.appmap;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -53,8 +55,10 @@ import naormalca.com.appmap.ui.ReportActivity;
 import naormalca.com.appmap.ui.ShowReportFragment;
 
 import static naormalca.com.appmap.Firebase.FirebaseDB.DB_REPORTS;
+import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_ACCIDENT;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_CRIMINAL;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_ECONOMY;
+import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_EXPLOSIVE;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_SECURITY;
 import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_SOCIAL;
 import static naormalca.com.appmap.misc.Constant.REPORT_FRAGMENT_TAG;
@@ -106,6 +110,7 @@ public class MainActivity extends AppCompatActivity
     * */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+      //  setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // Map content fragment
@@ -322,6 +327,12 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.criminalItem) {
             mIsReportTypeFilter = true;
             mCurrentReportTypeShow = MARKER_TYPE_CRIMINAL;
+        } else if (id == R.id.accidentItem){
+            mIsReportTypeFilter = true;
+            mCurrentReportTypeShow = MARKER_TYPE_ACCIDENT;
+        } else if (id == R.id.explosiveItem){
+            mIsReportTypeFilter = true;
+            mCurrentReportTypeShow = MARKER_TYPE_EXPLOSIVE;
         } else if (id == R.id.signUpItem){
             Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
             startActivity(intent);
@@ -332,9 +343,9 @@ public class MainActivity extends AppCompatActivity
             signOut();
         }
 
-        markersSetup();
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
+        markersSetup();
         return true;
     }
 
@@ -421,39 +432,52 @@ public class MainActivity extends AppCompatActivity
             // Check if there report filter
             if (!mIsReportTypeFilter) {
                 // Non-filter - show all reports
+
                 Log.d("MarkersSetup","each report : "+report.getTitle());
                 mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(), report.getLongitude()))
                         .title(report.getTitle())
                         .snippet(report.getTime())
                         .icon(BitmapDescriptorFactory
-                                .defaultMarker(Report.iconColors[report.getType()])))
+                                .fromBitmap(resizeBitmap(Report.iconColors[report.getType()],100,100))))
                         .setTag(report);
+                // .defaultMarker(Report.iconColors[report.getType()])))
             } else if(mCurrentReportTypeShow == report.getType()){
                 // Show only specific filter
                 mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(), report.getLongitude()))
                         .title(report.getTitle())
                         .snippet(report.getTime())
-                        .icon(BitmapDescriptorFactory
-                                .defaultMarker(Report.iconColors[report.getType()])))
+                        .icon(BitmapDescriptorFactory.
+                                fromBitmap(resizeBitmap(Report.iconColors[report.getType()],100,100))))
                 .setTag(report);
 
             }
         }
     }
 
+    public Bitmap resizeBitmap(String drawableName, int width, int height){
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(),getResources()
+                .getIdentifier(drawableName, "drawable", getPackageName()), options);
+        return Bitmap.createScaledBitmap(imageBitmap, width, height, false);
+    }
+
     public void showCurrentPositionOnMap(GPSTracker gps){
-        // Get current postion from GPS tracker and set a temp marker
+        // Get current position from GPS tracker and set a temp marker
         double currentLongitude, currentLatitude;
         if(gps.isCanGetLocation()) {
             Log.d("gpstracker","showCurrentPosition");
             currentLatitude = gps.getLatitude();
             currentLongitude = gps.getLongitude();
 
-            mMap.addMarker(new MarkerOptions().position(new LatLng(currentLatitude, currentLongitude))
+            mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(currentLatitude, currentLongitude))
                     .title(currentLatitude+"/"+currentLongitude)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)))
+                    .icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap("ic_marker_current",
+                            100,120)))
+                    .zIndex(1.0f))
                     .setTag(new Report(false));
         }
     }

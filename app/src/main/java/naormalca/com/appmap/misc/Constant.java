@@ -16,6 +16,8 @@ public class Constant {
     public static final int MARKER_TYPE_ECONOMY = 1;
     public static final int MARKER_TYPE_SOCIAL = 2;
     public static final int MARKER_TYPE_CRIMINAL = 3;
+    public static final int MARKER_TYPE_ACCIDENT = 4;
+    public static final int MARKER_TYPE_EXPLOSIVE = 5;
 
     public static final String REPORT_FRAGMENT_TAG = "fragment tag";
 }

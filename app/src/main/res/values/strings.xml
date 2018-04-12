@@ -9,10 +9,12 @@
     <string name="reportTitle">כותרת הדיווח</string>
 
     <string-array name="planets_array">
-        <item>ביטחוני</item>
+        <item>צבאי</item>
         <item>כלכלי</item>
         <item>חברתי</item>
         <item>פלילי</item>
+        <item>תאונה</item>
+        <item>פיגוע</item>
     </string-array>
 
 </resources>

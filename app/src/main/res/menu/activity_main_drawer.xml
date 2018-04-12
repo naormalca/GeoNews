@@ -12,7 +12,7 @@
         <item
             android:id="@+id/securityItem"
             android:icon="@drawable/ic_menu_camera"
-            android:title="ביטחוני" />
+            android:title="צבאי" />
         <item
             android:id="@+id/economyItem"
             android:icon="@drawable/ic_menu_gallery"
@@ -25,6 +25,14 @@
             android:id="@+id/criminalItem"
             android:icon="@drawable/ic_menu_manage"
             android:title="פלילי" />
+        <item
+            android:id="@+id/accidentItem"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="תאונות" />
+        <item
+            android:id="@+id/explosiveItem"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="פיגועים" />
     </group>
     <item android:title="משתמשים">
         <menu>
@@ -44,10 +52,6 @@
     </item>
     <item android:title="אודות">
         <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="שיתוף" />
             <item
                 android:id="@+id/nav_send"
                 android:icon="@drawable/ic_menu_send"

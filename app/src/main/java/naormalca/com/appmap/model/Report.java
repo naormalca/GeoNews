@@ -26,9 +26,11 @@ public class Report {
      * 2- Economy - CYAN
      * 3- Social - ROSE
      * 4- Crime - BLUE
+     * 5- Accident
+     * 6- explosive
      */
-    public static final float[] iconColors = {
-            0.0F,180.0F,330.0F,210.0F
+    public static final String[] iconColors = {
+            "military","economy","social","policemen","accident","explosive"
     };
     public Report(){
         //Default
