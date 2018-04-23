@@ -39,7 +39,8 @@ implements View.OnClickListener {
     private EditText emailEditText;
     private EditText passwordEditText;
     private ProgressBar progressBar;
-
+//1.At navigation bar every click load all DB
+    //2.When signUp failed the button visible not back
     private DatabaseReference mDatabase;
 
     @Override
@@ -66,7 +67,7 @@ implements View.OnClickListener {
         }
     }
 
-
+    //TODO: Split this function to validation and signup
     private void registerUser() {
         final String email = emailEditText.getText().toString().trim();
         String password = passwordEditText.getText().toString().trim();
@@ -101,7 +102,7 @@ implements View.OnClickListener {
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
-                progressBar.setVisibility(View.GONE);
+                //progressBar.setVisibility(View.GONE);
                 if (task.isSuccessful()) {
                     Toast.makeText(getApplicationContext(), "נרשמת בהצלחה!", Toast.LENGTH_SHORT).show();
                     String fullName = nameEditText.getText().toString();
@@ -109,7 +110,8 @@ implements View.OnClickListener {
                     String[] nameArray = utils.parseFullName(fullName);
                     // Create new user
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                    Users newUser = new Users(nameArray[0], nameArray[1],email, user.getUid());
+                    Users newUser = new Users(nameArray[0],
+                            nameArray.length == 1 ? null : nameArray[1], email, user.getUid());
                     // Get current user ID & push to database
                     mDatabase.child(FirebaseDB.USERS_DB).child(user.getUid()).setValue(newUser);
                     finish();
@@ -126,5 +128,7 @@ implements View.OnClickListener {
                 }
             }
     });
+        progressBar.setVisibility(View.GONE);
+        signUpButton.setVisibility(View.VISIBLE);
     }
 }

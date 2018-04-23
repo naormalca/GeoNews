@@ -1,17 +1,24 @@
 package naormalca.com.appmap;
 
 
+import android.*;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -27,6 +34,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.akhgupta.easylocation.EasyLocationActivity;
+import com.akhgupta.easylocation.EasyLocationAppCompatActivity;
+import com.akhgupta.easylocation.EasyLocationRequest;
+import com.akhgupta.easylocation.EasyLocationRequestBuilder;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -35,6 +49,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -52,6 +67,7 @@ import naormalca.com.appmap.model.Users;
 import naormalca.com.appmap.ui.LoginActivity;
 import naormalca.com.appmap.ui.RegisterActivity;
 import naormalca.com.appmap.ui.ReportActivity;
+import naormalca.com.appmap.ui.ReportListViewActivity;
 import naormalca.com.appmap.ui.ShowReportFragment;
 
 import static naormalca.com.appmap.Firebase.FirebaseDB.DB_REPORTS;
@@ -67,42 +83,45 @@ import static naormalca.com.appmap.misc.Constant.REPORT_LNG;
 import static naormalca.com.appmap.misc.Constant.TLV_LAT;
 import static naormalca.com.appmap.misc.Constant.TLV_LNG;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,
+public class MainActivity extends EasyLocationAppCompatActivity
+implements NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback
-        ,GoogleMap.OnMapLoadedCallback,
-        GoogleMap.OnMarkerClickListener
-{
+        , GoogleMap.OnMapLoadedCallback,
+        GoogleMap.OnMarkerClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+
+    // Fire base members
     private DatabaseReference mDatabase;
-    private FirebaseUser mUser;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
 
-    private Users currentUserData;
 
-    private SupportMapFragment mSupportMapFragment;
+    // Map members
     GoogleMap mMap;
     private GPSTracker gps;
-
     private double mLatitudeClick;
     private double mLongitudeClick;
     private Marker mTempMarkerTarget;
-    private Marker mCurrentPositionMarker;
-
     private boolean isMapLoaded = false;
-    private int mCurrentReportTypeShow;
 
+    // Model members
     private boolean mIsReportTypeFilter;
     private ArrayList<Report> mReports = new ArrayList<>();
+    private int mCurrentReportTypeShow;
+    private Users currentUserData;
 
     // Report fragment
     private ShowReportFragment mShowReportFragment;
-    private FragmentTransaction mFragmentTransaction;
-    private NavigationView navigationView;
-
+    // Views
     private TextView mUserHelloMsg;
+    //New Location
+    private double mCurrentLatitude;
+    private double mCurrentLongitude;
+    private Location mCurrentLocation;
+    private SupportMapFragment supportMapFragment;
+
+
     /*
     *
     * Life-Cycle functions
@@ -110,26 +129,33 @@ public class MainActivity extends AppCompatActivity
     * */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-      //  setTheme(R.style.AppTheme);
+        //  setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
         // Map content fragment
-        mSupportMapFragment = (SupportMapFragment) getSupportFragmentManager()
+        supportMapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.mapView);
+
+        //First check for location permission,
+        // after kick off the map and location service
+        checkLocationPermission();
+
         //async the map
-        mSupportMapFragment.getMapAsync(this);
-        gps = new GPSTracker(MainActivity.this);
+
+
 
         // Setup toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         // Setup floating report button
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // TODO: Clean function, split to checks and actions
-                if (isMapLoaded && gps.isCanGetLocation() && gps.getLocation() != null) {
+                if (isMapLoaded && mCurrentLocation != null) {
                     if (radiusCheck(new LatLng(mLatitudeClick, mLongitudeClick))) {
                         //pass the location to ReportActivity
                         Intent intent = new Intent(MainActivity.this, ReportActivity.class);
@@ -146,26 +172,21 @@ public class MainActivity extends AppCompatActivity
                     Snackbar snackbar = Snackbar
                             .make(view, "The map not render!", Snackbar.LENGTH_LONG);
                     snackbar.show();
-                } else if (!gps.isCanGetLocation()){
-                    Snackbar snackbar = Snackbar
-                            .make(view, "GPS IS NOT WORKING", Snackbar.LENGTH_LONG);
-                    snackbar.show();
-                } else if (gps.getLocation() == null){
-                    Snackbar snackbar = Snackbar
-                            .make(view, "gps.location", Snackbar.LENGTH_LONG);
-                    snackbar.show();
                 }
             }
         });
+
         // Setup action bar
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+
         // Setup navigation bar and listener
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
         // Hello navigation bar user message
         LinearLayout linearLayout = (LinearLayout) navigationView.getHeaderView(0);
         mUserHelloMsg = linearLayout.findViewById(R.id.helloMsgItem);
@@ -220,8 +241,14 @@ public class MainActivity extends AppCompatActivity
 
     /*TODO: Change function first retrieve the user data, after change in ui
     */
-    private void getUserInfoAndUpdate(final String userId){
 
+    /**
+     * If user user auth succeed, This function called by updateUi() function and
+     * receive all the users name by userID than fix the UI
+     * @param userId
+     */
+    private void getUserInfoAndUpdate(final String userId){
+        // Get the specific reference
         mDatabase = FirebaseDatabase.getInstance().getReference(FirebaseDB.USERS_DB);
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
@@ -229,6 +256,7 @@ public class MainActivity extends AppCompatActivity
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
                     currentUserData = postSnapshot.getValue(Users.class);
                     Log.d(TAG,currentUserData.getFirstName()+" "+currentUserData.getLastName()+"inOnDataChange"+currentUserData.getID());
+                    // Check which user id parallel to name
                     if (currentUserData.getID().equals(userId)){
                         // Change the hello msg at navigation bar
                         mUserHelloMsg = findViewById(R.id.helloMsgItem);
@@ -248,6 +276,10 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    /**
+     * Toggle options item visibility
+     * @param visible
+     */
     private void toggleAuthOptions(boolean visible) {
         // Find the menu item and change visibility
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -261,6 +293,9 @@ public class MainActivity extends AppCompatActivity
         signOutItem.setVisible(visible);
     }
 
+    /**
+     * Sign out from firebase user with alert box
+     */
     private void signOut() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setMessage("האם תרצה להתנתק?");
@@ -285,12 +320,22 @@ public class MainActivity extends AppCompatActivity
     * UI Functions
     *
     * */
+    private void updateUI(FirebaseUser user) {
+        if (user != null){
+            Log.d(TAG, user.getEmail()+ user.getUid());
+            getUserInfoAndUpdate(user.getUid());
+        } else{
+            guestInfoUpdate();
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
+
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -336,26 +381,26 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.signUpItem){
             Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
             startActivity(intent);
+            return true;
         } else if (id == R.id.signInItem){
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(intent);
-        } else if (id == R.id.signOutItem){
+            return true;
+        } else if (id == R.id.reportListViewItem){
+            Intent intent = new Intent(MainActivity.this, ReportListViewActivity.class);
+            intent.putExtra("test", mReports);
+            startActivity(intent);
+            return true;
+        }
+        else if (id == R.id.signOutItem){
             signOut();
+            return true;
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         markersSetup();
         return true;
-    }
-
-    private void updateUI(FirebaseUser user) {
-        if (user != null){
-            Log.d(TAG, user.getEmail()+ user.getUid());
-            getUserInfoAndUpdate(user.getUid());
-        } else{
-            guestInfoUpdate();
-        }
     }
     private void guestInfoUpdate() {
         mUserHelloMsg.setText("שלום, אורח");
@@ -368,15 +413,22 @@ public class MainActivity extends AppCompatActivity
     *
     * */
 
+
+    @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
         // Map ready
         Toast.makeText(this, "Map is ready", Toast.LENGTH_SHORT).show();
         mMap = googleMap;
-        // Focus the camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(TLV_LAT,TLV_LNG)));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(TLV_LAT,TLV_LNG), 10.0f));
-        showCurrentPositionOnMap(gps);
+        // Set location icon
+        mMap.setMyLocationEnabled(true);
+        // Set traffic info by google
+        mMap.setTrafficEnabled(true);
+        // Focus the camera*/
+        Log.d(TAG,mCurrentLatitude+"asdasdasdas"+mCurrentLatitude+"");
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(mCurrentLatitude,mCurrentLongitude)));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLatitude,mCurrentLongitude), 15.0f));
+
         // Call to MapLoaded, MapClickListener, OnMarkerClickListener
         mMap.setOnMapLoadedCallback(this);
         mMap.setOnMarkerClickListener(this);
@@ -426,13 +478,12 @@ public class MainActivity extends AppCompatActivity
         // Clear map
         mMap.clear();
         // Show current position by gps
-        showCurrentPositionOnMap(gps);
+        //showCurrentPositionOnMap(gps);
         Log.d("MarkersSetup","isReportTYPEFilter : "+ mIsReportTypeFilter);
         for (Report report: mReports) {
             // Check if there report filter
             if (!mIsReportTypeFilter) {
                 // Non-filter - show all reports
-
                 Log.d("MarkersSetup","each report : "+report.getTitle());
                 mMap.addMarker(new MarkerOptions()
                         .position(new LatLng(report.getLatitude(), report.getLongitude()))
@@ -476,7 +527,7 @@ public class MainActivity extends AppCompatActivity
                     .position(new LatLng(currentLatitude, currentLongitude))
                     .title(currentLatitude+"/"+currentLongitude)
                     .icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap("ic_marker_current",
-                            100,120)))
+                            150,150)))
                     .zIndex(1.0f))
                     .setTag(new Report(false));
         }
@@ -487,7 +538,7 @@ public class MainActivity extends AppCompatActivity
         Location target = new Location("target");
         target.setLatitude(newReport.latitude);
         target.setLongitude(newReport.longitude);
-        return gps.getLocation().distanceTo(target) < 2000;
+        return mCurrentLocation.distanceTo(target) < 2000;
     }
 
     @Override
@@ -507,13 +558,101 @@ public class MainActivity extends AppCompatActivity
                 // Replace whatever is in the fragment_container view with this mShowReportFragment,
                 // and add the mFragmentTransaction to the back stack so the user can navigate back
                 FragmentManager fragmentManager = getSupportFragmentManager();
-                mFragmentTransaction = fragmentManager.beginTransaction();
-                mFragmentTransaction.replace(R.id.fragment_container, mShowReportFragment, REPORT_FRAGMENT_TAG);
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                fragmentTransaction.replace(R.id.fragment_container, mShowReportFragment, REPORT_FRAGMENT_TAG);
                 //mFragmentTransaction.addToBackStack(null);
 
-                mFragmentTransaction.commit();
+                fragmentTransaction.commit();
             }
         }
         return true;
+    }
+
+    /**
+     * check locations permission,
+     * If it`s granted the map and location service kick off
+     */
+    private void checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            // Ask for permission and call to @onRequestPermissionsResult
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},2);
+
+        } else{
+            // Permission also granted
+            kickTheMap();
+        }
+    }
+
+    /**
+     * Deal with permission ask result
+     * @param requestCode
+     * @param permissions
+     * @param grantResults
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode){
+            case 1 : {
+                // Location permission
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    // Move on
+                    kickTheMap();
+                } else{
+                    //TODO:Some manipulation, maybe restart or another activity
+                    // Close app
+                    finish();
+                }
+            }
+        }
+    }
+
+    /**
+     * Create the location service, and async the map.
+     */
+    public void kickTheMap(){
+        LocationRequest locationRequest = new LocationRequest()
+                .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY)
+                .setInterval(5000)
+                .setFastestInterval(5000);
+        EasyLocationRequest easyLocationRequest = new EasyLocationRequestBuilder()
+                .setLocationRequest(locationRequest)
+                .setFallBackToLastLocationTime(3000)
+                .build();
+        requestLocationUpdates(easyLocationRequest);
+        // Async the map
+        supportMapFragment.getMapAsync(this);
+    }
+
+    @Override
+    public void onLocationPermissionGranted() {
+
+    }
+
+    @Override
+    public void onLocationPermissionDenied() {
+        checkLocationPermission();
+    }
+
+    @Override
+    public void onLocationReceived(Location location) {
+        Log.d(TAG,"Location recevied!!!!@#!@#!@#!@#!@#!@#!");
+        mCurrentLocation = location;
+        mCurrentLatitude = location.getLatitude();
+        mCurrentLongitude = location.getLongitude();
+
+    }
+
+    @Override
+    public void onLocationProviderEnabled() {
+
+    }
+
+    @Override
+    public void onLocationProviderDisabled() {
+
     }
 }

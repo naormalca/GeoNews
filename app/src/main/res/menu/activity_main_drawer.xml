@@ -33,6 +33,10 @@
             android:id="@+id/explosiveItem"
             android:icon="@drawable/ic_menu_manage"
             android:title="פיגועים" />
+        <item
+            android:id="@+id/reportListViewItem"
+            android:title="ראה כל הדיווחים"
+            />
     </group>
     <item android:title="משתמשים">
         <menu>

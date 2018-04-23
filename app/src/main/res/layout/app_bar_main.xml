@@ -28,9 +28,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        app:fabSize="normal"
+        app:backgroundTint="#128c7e"
 
-        app:backgroundTint="@android:color/transparent"
-        app:srcCompat="@drawable/ic_publish_black_24dp" />
+        app:fabSize="normal"
+        app:rippleColor="@color/cardview_shadow_end_color"
+        app:srcCompat="@drawable/ic_action_name" />
 
 </android.support.design.widget.CoordinatorLayout>

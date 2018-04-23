@@ -37,6 +37,8 @@ dependencies {
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
     compile 'com.firebaseui:firebase-ui-auth:3.2.2'
     implementation 'com.squareup.picasso:picasso:2.71828'
+    compile 'com.akhgupta:android-easylocation:1.0.1'
+    compile "com.google.android.gms:play-services-location:11.8.0"
 
 
 }

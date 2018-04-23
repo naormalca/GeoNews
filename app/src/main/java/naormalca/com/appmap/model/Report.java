@@ -1,14 +1,19 @@
 package naormalca.com.appmap.model;
 
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
+import naormalca.com.appmap.misc.utils;
+
 /**
  * Created by Naor on 21/02/2018.
  */
-public class Report {
+public class Report implements Parcelable{
     private String mTitle;
     private String mDescription;
     private double mLatitude;
@@ -135,6 +140,48 @@ public class Report {
     public void setUrlImage(String urlImage) {
         mUrlImage = urlImage;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(mTitle);
+        parcel.writeString(mDescription);
+        parcel.writeDouble(mLatitude);
+        parcel.writeDouble(mLongitude);
+        parcel.writeInt(mId);
+        parcel.writeString(mTime);
+        parcel.writeInt(mType);
+        parcel.writeString(mUserID);
+        parcel.writeString(mUrlImage);
+
+    }
+    private Report(Parcel in){
+        mTitle = in.readString();
+        mDescription = in.readString();
+        mLatitude = in.readDouble();
+        mLongitude = in.readDouble();
+        mId = in.readInt();
+        mTime = in.readString();
+        mType = in.readInt();
+        mUserID = in.readString();
+        mUrlImage = in.readString();
+    }
+    public static final Creator<Report> CREATOR = new Creator<Report>() {
+        @Override
+        public Report createFromParcel(Parcel parcel) {
+            return new Report(parcel);
+        }
+
+        @Override
+        public Report[] newArray(int i) {
+            return new Report[i];
+        }
+    };
+
 
     /* public String getUserFullName() {
         return mUserFullName;

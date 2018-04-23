@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="170dp"
+    android:padding="8dp"
+
+    >
+
+    <ImageView
+        android:id="@+id/imageViewList"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerVertical="false"
+        app:srcCompat="@color/cardview_dark_background" />
+
+    <TextView
+        android:id="@+id/timeTextViewList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/imageViewList"
+        android:layout_centerHorizontal="true"
+        android:text="20:36:23" />
+
+    <TextView
+        android:id="@+id/descriptionTextViewList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:text="ימבה של טקסט מלא מלא טקסט
+הרבה שורות מעט שורות
+עוד קצת עוד קצת עוד קצת טקסט" />
+
+    <TextView
+        android:id="@+id/titleTextViewList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="12dp"
+        android:text="כותרת יפה מאוד" />
+
+    <TextView
+        android:id="@+id/nameTextViewList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/imageViewList"
+        android:layout_alignStart="@+id/titleTextViewList"
+        android:text="שם מדווח מדווח" />
+
+
+
+
+</RelativeLayout>
