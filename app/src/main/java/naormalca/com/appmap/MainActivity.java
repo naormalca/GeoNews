@@ -1,16 +1,13 @@
 package naormalca.com.appmap;
 
 
-import android.*;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -18,7 +15,6 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -26,7 +22,6 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,13 +29,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.akhgupta.easylocation.EasyLocationActivity;
 import com.akhgupta.easylocation.EasyLocationAppCompatActivity;
 import com.akhgupta.easylocation.EasyLocationRequest;
 import com.akhgupta.easylocation.EasyLocationRequestBuilder;
-import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -49,7 +41,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -80,8 +71,8 @@ import static naormalca.com.appmap.misc.Constant.MARKER_TYPE_SOCIAL;
 import static naormalca.com.appmap.misc.Constant.REPORT_FRAGMENT_TAG;
 import static naormalca.com.appmap.misc.Constant.REPORT_LAT;
 import static naormalca.com.appmap.misc.Constant.REPORT_LNG;
-import static naormalca.com.appmap.misc.Constant.TLV_LAT;
-import static naormalca.com.appmap.misc.Constant.TLV_LNG;
+import static naormalca.com.appmap.misc.Constant.IL_LAT;
+import static naormalca.com.appmap.misc.Constant.IL_LNG;
 
 public class MainActivity extends EasyLocationAppCompatActivity
 implements NavigationView.OnNavigationItemSelectedListener,
@@ -203,10 +194,37 @@ implements NavigationView.OnNavigationItemSelectedListener,
                 } else {
                     Log.d(TAG, "onAuthStateChanged:signed_out");
                 }
+                // Update the UI match the user connected or not
                 updateUI(user);
             }
         };
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d("Here","on resume!!!");
+        mDatabase = FirebaseDatabase.getInstance().getReference(DB_REPORTS);
+        mDatabase.addValueEventListener(new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            ArrayList<Report> currentReport = new ArrayList<>();
+            for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                // Add each report to array list
+                Report report = postSnapshot.getValue(Report.class);
+                currentReport.add(report);
+            }
+            mReports.clear();
+            mReports = currentReport;
+            markersSetup();
+        }
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    });
+}
+
 
     @Override
     protected void onStart() {
@@ -424,10 +442,6 @@ implements NavigationView.OnNavigationItemSelectedListener,
         mMap.setMyLocationEnabled(true);
         // Set traffic info by google
         mMap.setTrafficEnabled(true);
-        // Focus the camera*/
-        Log.d(TAG,mCurrentLatitude+"asdasdasdas"+mCurrentLatitude+"");
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(mCurrentLatitude,mCurrentLongitude)));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLatitude,mCurrentLongitude), 15.0f));
 
         // Call to MapLoaded, MapClickListener, OnMarkerClickListener
         mMap.setOnMapLoadedCallback(this);
@@ -475,34 +489,33 @@ implements NavigationView.OnNavigationItemSelectedListener,
     }
 
     private void markersSetup() {
-        // Clear map
-        mMap.clear();
-        // Show current position by gps
-        //showCurrentPositionOnMap(gps);
-        Log.d("MarkersSetup","isReportTYPEFilter : "+ mIsReportTypeFilter);
-        for (Report report: mReports) {
-            // Check if there report filter
-            if (!mIsReportTypeFilter) {
-                // Non-filter - show all reports
-                Log.d("MarkersSetup","each report : "+report.getTitle());
-                mMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(report.getLatitude(), report.getLongitude()))
-                        .title(report.getTitle())
-                        .snippet(report.getTime())
-                        .icon(BitmapDescriptorFactory
-                                .fromBitmap(resizeBitmap(Report.iconColors[report.getType()],100,100))))
-                        .setTag(report);
-                // .defaultMarker(Report.iconColors[report.getType()])))
-            } else if(mCurrentReportTypeShow == report.getType()){
-                // Show only specific filter
-                mMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(report.getLatitude(), report.getLongitude()))
-                        .title(report.getTitle())
-                        .snippet(report.getTime())
-                        .icon(BitmapDescriptorFactory.
-                                fromBitmap(resizeBitmap(Report.iconColors[report.getType()],100,100))))
-                .setTag(report);
+        if (mReports != null) {
+            // Clear map
+            mMap.clear();
+            for (Report report : mReports) {
+                // Check if there report filter
+                if (!mIsReportTypeFilter) {
+                    // Non-filter - show all reports
+                    Log.d("MarkersSetup", "each report : " + report.getTitle());
+                    mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(report.getLatitude(), report.getLongitude()))
+                            .title(report.getTitle())
+                            .snippet(report.getTime())
+                            .icon(BitmapDescriptorFactory
+                                    .fromBitmap(resizeBitmap(Report.iconColors[report.getType()], 100, 100))))
+                            .setTag(report);
+                    // .defaultMarker(Report.iconColors[report.getType()])))
+                } else if (mCurrentReportTypeShow == report.getType()) {
+                    // Show only specific filter
+                    mMap.addMarker(new MarkerOptions()
+                            .position(new LatLng(report.getLatitude(), report.getLongitude()))
+                            .title(report.getTitle())
+                            .snippet(report.getTime())
+                            .icon(BitmapDescriptorFactory.
+                                    fromBitmap(resizeBitmap(Report.iconColors[report.getType()], 100, 100))))
+                            .setTag(report);
 
+                }
             }
         }
     }
@@ -515,23 +528,6 @@ implements NavigationView.OnNavigationItemSelectedListener,
         return Bitmap.createScaledBitmap(imageBitmap, width, height, false);
     }
 
-    public void showCurrentPositionOnMap(GPSTracker gps){
-        // Get current position from GPS tracker and set a temp marker
-        double currentLongitude, currentLatitude;
-        if(gps.isCanGetLocation()) {
-            Log.d("gpstracker","showCurrentPosition");
-            currentLatitude = gps.getLatitude();
-            currentLongitude = gps.getLongitude();
-
-            mMap.addMarker(new MarkerOptions()
-                    .position(new LatLng(currentLatitude, currentLongitude))
-                    .title(currentLatitude+"/"+currentLongitude)
-                    .icon(BitmapDescriptorFactory.fromBitmap(resizeBitmap("ic_marker_current",
-                            150,150)))
-                    .zIndex(1.0f))
-                    .setTag(new Report(false));
-        }
-    }
 
     private boolean radiusCheck(LatLng newReport) {
         // Check current position radius 2km around
@@ -544,6 +540,10 @@ implements NavigationView.OnNavigationItemSelectedListener,
     @Override
     public void onMapLoaded() {
         isMapLoaded = true;
+        // Focus the camera*/
+        Log.d(TAG,mCurrentLatitude+"asdasdasdas"+mCurrentLatitude+"");
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(mCurrentLatitude, mCurrentLongitude)));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLatitude, mCurrentLongitude), 10.0f));
     }
 
     @Override
@@ -639,11 +639,9 @@ implements NavigationView.OnNavigationItemSelectedListener,
 
     @Override
     public void onLocationReceived(Location location) {
-        Log.d(TAG,"Location recevied!!!!@#!@#!@#!@#!@#!@#!");
         mCurrentLocation = location;
         mCurrentLatitude = location.getLatitude();
         mCurrentLongitude = location.getLongitude();
-
     }
 
     @Override

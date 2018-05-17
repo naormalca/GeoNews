@@ -48,22 +48,21 @@
 
         <activity android:name=".ui.ReportActivity" />
         <activity android:name=".ui.RegisterActivity" />
-        <activity android:name=".ui.LoginActivity"></activity>
+        <activity android:name=".ui.LoginActivity" />
 
-        <!--         Provider -->
+        <!-- Provider -->
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="naormalca.com.appmap.android.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
-
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <activity android:name=".ui.ReportListViewActivity">
-        </activity>
+        <activity android:name=".ui.ReportListViewActivity"></activity>
+        <activity android:name=".ui.SingleReportActivity"></activity>
     </application>
 
 </manifest>

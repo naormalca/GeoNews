@@ -18,13 +18,15 @@ public class Report implements Parcelable{
     private String mDescription;
     private double mLatitude;
     private double mLongitude;
-    private int mId;
+    private String mId;
     private String mTime;
     private int mType;
     private String mUserID;
-    private String mUserFullName;
     private String mUrlImage;
-    //
+    private int mLikes;
+
+
+    private String mUserFullName;
     private boolean show = true ;
     /**type by int
      * 1- Military or Security - RED
@@ -40,23 +42,15 @@ public class Report implements Parcelable{
     public Report(){
         //Default
     }
-    public boolean isShow() {
-        return show;
-    }
     /*
     Every marker has a report, marker with out report no needed to show.
      */
     public Report(boolean show){
         this.show = show;
     }
-
-    public void setShow(boolean show) {
-        this.show = show;
-    }
-
     public Report(String title, String description, double latitude,
-                  double longitude, int id, String time, int type,
-                  String userID, String urlImage) {
+                  double longitude, String id, String time, int type,
+                  String userID, String urlImage, String userFullName) {
         mTitle = title;
         mDescription = description;
         mLatitude = latitude;
@@ -64,9 +58,26 @@ public class Report implements Parcelable{
         mId = id;
         mTime = time;
         mType = type;
-      //  mUserFullName = userFullName;
+        mUserFullName = userFullName;
         mUserID = userID;
         mUrlImage = urlImage;
+        mLikes = 0;
+    }
+
+    public int getLikes() {
+        return mLikes;
+    }
+
+    public void setLikes(int likes) {
+        mLikes = likes;
+    }
+
+    public boolean isShow() {
+        return show;
+    }
+
+    public void setShow(boolean show) {
+        this.show = show;
     }
 
     public int getType() {
@@ -109,11 +120,11 @@ public class Report implements Parcelable{
         mLongitude = longitude;
     }
 
-    public int getId() {
+    public String getId() {
         return mId;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         mId = id;
     }
 
@@ -141,6 +152,13 @@ public class Report implements Parcelable{
         mUrlImage = urlImage;
     }
 
+    public String getUserFullName() {
+        return mUserFullName;
+    }
+
+    public void setUserFullName(String userFullName) {
+        mUserFullName = userFullName;
+    }
     @Override
     public int describeContents() {
         return 0;
@@ -152,11 +170,13 @@ public class Report implements Parcelable{
         parcel.writeString(mDescription);
         parcel.writeDouble(mLatitude);
         parcel.writeDouble(mLongitude);
-        parcel.writeInt(mId);
+        parcel.writeString(mId);
         parcel.writeString(mTime);
         parcel.writeInt(mType);
         parcel.writeString(mUserID);
         parcel.writeString(mUrlImage);
+        parcel.writeInt(mLikes);
+        parcel.writeString(mUserFullName);
 
     }
     private Report(Parcel in){
@@ -164,11 +184,13 @@ public class Report implements Parcelable{
         mDescription = in.readString();
         mLatitude = in.readDouble();
         mLongitude = in.readDouble();
-        mId = in.readInt();
+        mId = in.readString();
         mTime = in.readString();
         mType = in.readInt();
         mUserID = in.readString();
         mUrlImage = in.readString();
+        mLikes = in.readInt();
+        mUserFullName = in.readString();
     }
     public static final Creator<Report> CREATOR = new Creator<Report>() {
         @Override
@@ -182,12 +204,4 @@ public class Report implements Parcelable{
         }
     };
 
-
-    /* public String getUserFullName() {
-        return mUserFullName;
-    }
-
-   public void setUserFullName(String userFullName) {
-        mUserFullName = userFullName;
-    }*/
 }

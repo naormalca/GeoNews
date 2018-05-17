@@ -7,8 +7,8 @@ import com.google.android.gms.maps.model.LatLng;
  */
 
 public class Constant {
-    public static final double TLV_LAT = 32.109333;
-    public static final double TLV_LNG = 34.855499;
+    public static final double IL_LAT = 31.771959;
+    public static final double IL_LNG = 35.217018;
     public static final String REPORT_LAT = "report_lat";
     public static final String REPORT_LNG = "report_lng";
 

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="naormalca.com.appmap.ui.SingleReportActivity">
+
+    <LinearLayout
+        android:id="@+id/layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="15dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="5dp"
+            android:text="כותרת"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/timeTextView"
+            android:paddingBottom="15dp"
+            android:paddingTop="5dp"
+            android:paddingRight="8dp"
+            android:paddingLeft="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="24:24:24" />
+
+        <TextView
+            android:id="@+id/descriptionTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="טקסט טקסט טקסט טקסט טקסט טקסט טקסט
+טקסט טקסט טקסט טקסט טקסט טקסט טקסט
+טקסט טקסט טקסט טקסט טקסט טקסט טקסט" />
+
+        <RelativeLayout
+            android:id="@+id/layoutLiner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            >
+
+            <TextView
+                android:id="@+id/userNameTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="15dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="5dp"
+                android:text="נאור מלכה" />
+
+
+            <TextView
+                android:id="@+id/likesTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:background="@drawable/circle"
+                android:gravity="center"
+                android:text="93"
+                android:textAlignment="center"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+        <Button
+            android:id="@+id/likeButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="100dp"
+            android:layout_marginRight="100dp"
+            android:paddingBottom="15dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="5dp"
+            android:text="אימות אירוע" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:contentDescription="Content"
+            android:paddingBottom="15dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="5dp"
+            app:srcCompat="@color/common_google_signin_btn_text_dark_focused" />
+
+    </LinearLayout>
+</RelativeLayout>

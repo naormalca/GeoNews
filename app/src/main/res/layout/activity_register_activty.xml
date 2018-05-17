@@ -14,7 +14,7 @@
         android:layout_below="@+id/emailEditText"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="28dp"
         android:text="מייל"
         android:textAlignment="gravity"
         android:textAllCaps="false"
@@ -22,7 +22,7 @@
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.891"
+        app:layout_constraintHorizontal_bias="0.101"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/nameEditText" />
 
@@ -42,27 +42,27 @@
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.898"
+        app:layout_constraintHorizontal_bias="0.115"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/emailEditText" />
 
     <TextView
         android:id="@+id/nameTextView"
-        android:textAlignment="gravity"
         android:layout_width="wrap_content"
         android:layout_height="20dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="44dp"
+        android:layout_marginTop="40dp"
         android:text="שם ושם משפחה"
+        android:textAlignment="gravity"
         android:textAllCaps="false"
         android:textColor="@android:color/black"
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.854"
+        app:layout_constraintHorizontal_bias="0.145"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

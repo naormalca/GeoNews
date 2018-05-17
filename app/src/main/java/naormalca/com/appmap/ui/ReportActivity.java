@@ -27,8 +27,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -49,8 +52,10 @@ import java.util.Locale;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import naormalca.com.appmap.Firebase.FirebaseDB;
 import naormalca.com.appmap.R;
 import naormalca.com.appmap.model.Report;
+import naormalca.com.appmap.model.Users;
 
 import static naormalca.com.appmap.Firebase.FirebaseDB.DB_REPORTS;
 import static naormalca.com.appmap.misc.Constant.REPORT_LAT;
@@ -73,11 +78,13 @@ implements AdapterView.OnItemSelectedListener{
 
     private Uri mSelectedImage;
     private String mCurrentPhotoPath;
+    private String mUserFullName = null;
     private Uri mMediaUri;
-
     @BindView(R.id.titleEditText) EditText titleEt;
     @BindView(R.id.descriptionEditText) EditText descEditText;
     @BindView(R.id.spinner) Spinner mSpinner;
+    private DatabaseReference mDatabase;
+    private String userID;
 
 
     @Override
@@ -90,6 +97,14 @@ implements AdapterView.OnItemSelectedListener{
         mDatabaseReports = FirebaseDatabase.getInstance().getReference(DB_REPORTS);
         mStorage = FirebaseStorage.getInstance();
         mStorageReference = mStorage.getReference();
+        // Auth
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            getUserInfoAndUpdate(user.getUid());
+        } else{
+            mUserFullName = "אנונימי";
+        }
+        userID = user != null ? user.getUid() : null;
         // Retrieve lat lang from MainActivity
 
         Intent intent = getIntent();
@@ -120,9 +135,7 @@ implements AdapterView.OnItemSelectedListener{
 
     @OnClick(R.id.sendReportButton)
     public void sendReport(View view){
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-        final String userID = user != null ? user.getUid() : null;
         if (mSelectedImage != null){
             //
             StorageReference imageRef = mStorageReference.child("imagesReport/"+mSelectedImage.getLastPathSegment());
@@ -140,21 +153,25 @@ implements AdapterView.OnItemSelectedListener{
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                     String downloadUrl = taskSnapshot.getDownloadUrl().toString();
+                    // Push and get key
+                    String keyId = mDatabaseReports.push().getKey();
                     // Create report object and push him to DB
                     Report report = new Report(titleEt.getText().toString(),
                             descEditText.getText().toString(), mLatitudeReport, mLongitudeReport,
-                            0, getTime(), mSpinnerChoice,
-                            userID, downloadUrl);
-                    mDatabaseReports.push().setValue(report);
+                            keyId, getTime(), mSpinnerChoice,
+                            userID, downloadUrl, mUserFullName);
+                    mDatabaseReports.child(keyId).setValue(report);
                     finish();
                 }
             });
         } else {
+            // Push and get key
+            String keyId = mDatabaseReports.push().getKey();
             Report report = new Report(titleEt.getText().toString(),
                     descEditText.getText().toString(), mLatitudeReport, mLongitudeReport,
-                    0, getTime(), mSpinnerChoice,
-                    userID,null);
-            mDatabaseReports.push().setValue(report);
+                    keyId, getTime(), mSpinnerChoice,
+                    userID,null,mUserFullName);
+            mDatabaseReports.child(keyId).setValue(report);
             finish();
         }
     }
@@ -169,27 +186,6 @@ implements AdapterView.OnItemSelectedListener{
     }
     @OnClick(R.id.takePhotoBtn)
     public void takeImage(){
-       /* Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try{
-                photoFile = createImageFile();
-            } catch (IOException ex){
-                // Error occurred while creating the File
-            }
-            if (photoFile != null) {
-               Uri photoURI = FileProvider.getUriForFile(this,
-                        "naormalca.com.appmap.android.fileprovider",
-                        photoFile);
-                //Uri photoURI = Uri.fromFile(photoFile);
-                Log.d(TAG, photoURI.getPath());
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
-
-        } */
        mMediaUri = getOutputMediaFileUri(MEDIA_TYPE_IMAGE);
        if (mMediaUri == null){
            Toast.makeText(this,
@@ -289,6 +285,31 @@ implements AdapterView.OnItemSelectedListener{
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
         return image;
+    }
+    private void getUserInfoAndUpdate(final String userId){
+        // Get the specific reference
+        mDatabase = FirebaseDatabase.getInstance().getReference(FirebaseDB.USERS_DB);
+        mDatabase.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    Users current = postSnapshot.getValue(Users.class);
+
+                    // Check which user id parallel to name
+                    if (current.getID().equals(userId)){
+                        mUserFullName = current.getFirstName() +" "+ current.getLastName();
+                    }
+
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
     }
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {

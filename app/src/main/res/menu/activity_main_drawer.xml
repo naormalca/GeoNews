@@ -11,38 +11,39 @@
             android:title="הכל - ללא סינון" />
         <item
             android:id="@+id/securityItem"
-            android:icon="@drawable/ic_menu_camera"
+            android:icon="@drawable/military"
             android:title="צבאי" />
         <item
             android:id="@+id/economyItem"
-            android:icon="@drawable/ic_menu_gallery"
+            android:icon="@drawable/economy"
             android:title="כלכלי" />
         <item
             android:id="@+id/socialItem"
-            android:icon="@drawable/ic_menu_slideshow"
+            android:icon="@drawable/social"
             android:title="חברתי" />
         <item
             android:id="@+id/criminalItem"
-            android:icon="@drawable/ic_menu_manage"
+            android:icon="@drawable/policemen"
             android:title="פלילי" />
         <item
             android:id="@+id/accidentItem"
-            android:icon="@drawable/ic_menu_manage"
+            android:icon="@drawable/accident"
             android:title="תאונות" />
         <item
             android:id="@+id/explosiveItem"
-            android:icon="@drawable/ic_menu_manage"
+            android:icon="@drawable/explosive"
             android:title="פיגועים" />
         <item
             android:id="@+id/reportListViewItem"
-            android:title="ראה כל הדיווחים"
+            android:title="פורטל דיווחים"
+            android:icon="@drawable/ic_menu_gallery"
             />
     </group>
     <item android:title="משתמשים">
         <menu>
             <item
                 android:id="@+id/signUpItem"
-                android:icon="@drawable/ic_menu_share"
+                android:icon="@drawable/ic_action_name"
                 android:title="הירשם" />
             <item
                 android:id="@+id/signInItem"
